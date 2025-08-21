@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+streamlit
+requests
+langchain
+langgraph
+crewai
+crewai-tools
+langchain_groq
+python-dotenv
+duckduckgo-search
+sentence-transformers
