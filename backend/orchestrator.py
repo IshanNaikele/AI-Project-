@@ -1,6 +1,3 @@
-# backend/orchestrator.py
-
-# Import all necessary agents and tasks
 from backend.agents.research_agent import ResearchAgents
 from backend.agents.critical_agent import CriticalAgents
 from backend.agents.architect_agent import SolutionArchitectAgents
@@ -12,83 +9,103 @@ from langchain_community.chat_models import ChatLiteLLM
 from dotenv import load_dotenv
 import os
 
-# Load all environment variables from the .env file
 load_dotenv()
-
-# Set a dummy OPENAI_API_KEY to prevent internal CrewAI checks from failing.
 os.environ["OPENAI_API_KEY"] = "dummy-key"
 
-if __name__ == '__main__':
-    # Initialize all agent and task classes
-    llm = ChatLiteLLM(
-        model="ollama/gemma:2b", 
-        base_url="http://localhost:8080"
-    )
+class AIStrategistOrchestrator:
+    def __init__(self):
+        self.llm = ChatLiteLLM(
+            model="ollama/gemma:2b", 
+            base_url="http://localhost:8080"
+        )
 
-    research_agents = ResearchAgents()
-    research_tasks = ResearchTasks()
+    def run_strategy_workflow(self, theme, idea, team_strength):
+        """Execute the workflow step by step to ensure proper data flow"""
+        try:
+            print(f"🚀 Starting workflow: {team_strength} team")
+            
+            # Initialize agents
+            research_agents = ResearchAgents()
+            critical_agents = CriticalAgents()
+            solution_architect_agents = SolutionArchitectAgents()
+            pitch_agents = PitchAgents()
+            
+            research_tasks = ResearchTasks()
+            critical_tasks = CriticalTasks()
+            solution_architect_tasks = SolutionArchitectTasks()
+            pitch_tasks = PitchTasks()
 
-    critical_agents = CriticalAgents()
-    critical_tasks = CriticalTasks()
+            # STEP 1: Research
+            print("📊 Step 1: Market Research...")
+            researcher = research_agents.research_agent(llm=self.llm)
+            research_task = research_tasks.research_task(researcher, theme, idea)
+            
+            research_crew = Crew(
+                agents=[researcher],
+                tasks=[research_task],
+                process=Process.sequential,
+                verbose=False
+            )
+            research_result = research_crew.kickoff()
+            print(f"✅ Research complete: {str(research_result)[:100]}...")
 
-    solution_architect_agents = SolutionArchitectAgents()
-    solution_architect_tasks = SolutionArchitectTasks()
+            # STEP 2: Critical Analysis
+            print("🔍 Step 2: Critical Analysis...")
+            critic = critical_agents.critical_agent(llm=self.llm)
+            critical_task = critical_tasks.critical_task(critic, str(research_result))
+            
+            critical_crew = Crew(
+                agents=[critic],
+                tasks=[critical_task], 
+                process=Process.sequential,
+                verbose=False
+            )
+            critical_result = critical_crew.kickoff()
+            print(f"✅ Critical analysis complete: {str(critical_result)[:100]}...")
 
-    pitch_agents = PitchAgents()
-    pitch_tasks = PitchTasks()
+            # STEP 3: Solution Architecture
+            print(f"🏗️ Step 3: Solution Architecture for {team_strength} team...")
+            architect = solution_architect_agents.solution_architect_agent(llm=self.llm)
+            architect_task = solution_architect_tasks.solution_architect_task(
+                architect, idea, str(research_result), str(critical_result), team_strength
+            )
+            
+            architect_crew = Crew(
+                agents=[architect],
+                tasks=[architect_task],
+                process=Process.sequential,
+                verbose=False
+            )
+            architect_result = architect_crew.kickoff()
+            print(f"✅ Architecture complete: {str(architect_result)[:100]}...")
 
-    # Get the agent objects
-    researcher = research_agents.research_agent(llm=llm)
-    critic = critical_agents.critical_agent(llm=llm)
-    architect = solution_architect_agents.solution_architect_agent(llm=llm)
-    pitch_gen = pitch_agents.pitch_agent(llm=llm)
-    
-    # Define a variable for the team's core strength
-    # You can get this from user input later in your frontend
-    team_strength = "AI/ML Focused"
-    
-    # Get the task objects
-    # Pass the theme and idea as inputs
-    research_task = research_tasks.research_task(
-        agent=researcher,
-        theme="AI in Education",
-        idea="An AI-powered app to help students learn new languages."
-    )
-    
-    # The output of research_task becomes the input for critical_task
-    critical_task = critical_tasks.critical_task(
-        agent=critic,
-        research_report=research_task.output
-    )
-    
-    # The output of both previous tasks become inputs for architect_task
-    architect_task = solution_architect_tasks.solution_architect_task(
-        agent=architect,
-        idea="An AI-powered app to help students learn new languages.",
-        research_report=research_task.output,
-        critical_analysis=critical_task.output,
-        team_strength=team_strength
-    )
-    
-    # The output of architect_task becomes the input for pitch_task
-    pitch_task = pitch_tasks.pitch_task(
-        agent=pitch_gen,
-        mvp_plan=architect_task.output
-    )
+            # STEP 4: Pitch Generation
+            print("🎯 Step 4: Pitch Generation...")
+            pitch_gen = pitch_agents.pitch_agent(llm=self.llm)
+            pitch_task = pitch_tasks.pitch_task(pitch_gen, str(architect_result))
+            
+            pitch_crew = Crew(
+                agents=[pitch_gen],
+                tasks=[pitch_task],
+                process=Process.sequential,
+                verbose=False
+            )
+            pitch_result = pitch_crew.kickoff()
+            print("✅ Pitch complete!")
 
-    # Create and configure the Crew
-    crew = Crew(
-        agents=[researcher, critic, architect, pitch_gen],
-        tasks=[research_task, critical_task, architect_task, pitch_task],
-        process=Process.sequential,
-        verbose=True,
-        llm=llm
-    )
+            return {
+                "success": True,
+                "research": str(research_result),
+                "critical_analysis": str(critical_result), 
+                "mvp_plan": str(architect_result),
+                "pitch": str(pitch_result),
+                "team_strength": team_strength
+            }
 
-    # Kick off the crew's work
-    print("🚀 Crew kicking off...")
-    result = crew.kickoff()
-
-    print("\n\n✅ Crew execution finished!")
-    print("Final Result:")
-    print(result)
+        except Exception as e:
+            print(f"❌ Error: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "team_strength": team_strength
+            }

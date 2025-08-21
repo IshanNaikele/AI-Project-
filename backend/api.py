@@ -1,115 +1,125 @@
-# backend/api.py
+# ===================================
+# backend/api.py - FastAPI Integration
+# ===================================
 
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from crewai import Crew, Process
-from langchain_community.chat_models import ChatLiteLLM
-from dotenv import load_dotenv
-import os
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from backend.orchestrator import AIStrategistOrchestrator
 import uvicorn
 
-# Import all agents and tasks
-from backend.agents.research_agent import ResearchAgents
-from backend.agents.critical_agent import CriticalAgents
-from backend.agents.architect_agent import SolutionArchitectAgents
-from backend.agents.pitch_agent import PitchAgents
-from backend.tasks import ResearchTasks, CriticalTasks, SolutionArchitectTasks, PitchTasks
+app = FastAPI(title="AI Strategist API", version="1.0.0")
 
-# Load environment variables for API keys and other configurations
-load_dotenv()
-
-# Set a dummy OPENAI_API_KEY for CrewAI's internal checks
-os.environ["OPENAI_API_KEY"] = "dummy-key"
-
-# Define a Pydantic model for the request body
-class CrewInput(BaseModel):
-    """
-    Input schema for the crew's kickoff method.
-    """
-    hackathon_theme: str = Field(..., description="The theme of the hackathon.")
-    raw_idea: str = Field(..., description="The raw idea to be validated.")
-    team_strength: str = Field(..., description="The core strength of the team (e.g., 'Frontend', 'Backend', 'AI/ML', 'Full-Stack').")
-
-# Initialize the FastAPI app
-app = FastAPI(
-    title="The AI Strategist",
-    description="A multi-agent system for personalized, rapid idea validation and strategic planning.",
-    version="1.0.0",
+# Add CORS middleware for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Main endpoint to run the crew
-@app.post("/run-strategist", tags=["main"])
-def run_strategist(input: CrewInput):
+# Request model
+class StrategyRequest(BaseModel):
+    theme: str
+    idea: str
+    team_strength: str
+
+# Response model  
+class StrategyResponse(BaseModel):
+    success: bool
+    research: str = ""
+    critical_analysis: str = ""
+    mvp_plan: str = ""
+    pitch: str = ""
+    team_strength: str = ""
+    error: str = ""
+
+# Initialize orchestrator globally
+orchestrator = AIStrategistOrchestrator()
+
+@app.get("/")
+async def root():
+    return {"message": "AI Strategist API is running!"}
+
+@app.post("/generate-strategy", response_model=StrategyResponse)
+async def generate_strategy(request: StrategyRequest):
     """
-    This endpoint takes a hackathon idea and team strength as input and
-    returns a complete, tailored strategic plan and pitch outline.
+    Generate a personalized strategy based on team strength
     """
-    # Initialize the LLM
     try:
-        llm = ChatLiteLLM(
-            model="ollama/gemma:2b",
-            base_url="http://localhost:8080"
+        # Validate team strength
+        valid_strengths = ["Frontend", "Backend", "AI/ML", "Full-Stack"]
+        if request.team_strength not in valid_strengths:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid team_strength. Must be one of: {valid_strengths}"
+            )
+
+        print(f"🎯 Generating strategy for {request.team_strength} team")
+        print(f"Theme: {request.theme}")
+        print(f"Idea: {request.idea}")
+
+        # Run the workflow
+        result = orchestrator.run_strategy_workflow(
+            theme=request.theme,
+            idea=request.idea,
+            team_strength=request.team_strength
         )
+
+        return StrategyResponse(**result)
+
     except Exception as e:
-        return {"error": f"Failed to initialize LLM: {e}"}
+        print(f"❌ API Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-    # Initialize all agent and task classes
-    research_agents = ResearchAgents()
-    research_tasks = ResearchTasks()
-    critical_agents = CriticalAgents()
-    critical_tasks = CriticalTasks()
-    solution_architect_agents = SolutionArchitectAgents()
-    solution_architect_tasks = SolutionArchitectTasks()
-    pitch_agents = PitchAgents()
-    pitch_tasks = PitchTasks()
-
-    # Get the agent objects
-    researcher = research_agents.research_agent(llm=llm)
-    critic = critical_agents.critical_agent(llm=llm)
-    architect = solution_architect_agents.solution_architect_agent(llm=llm)
-    pitch_gen = pitch_agents.pitch_agent(llm=llm)
-    
-    # Define the tasks. The output of one task is passed as context to the next.
-    research_task = research_tasks.research_task(
-        agent=researcher,
-        theme=input.hackathon_theme,
-        idea=input.raw_idea
-    )
-    
-    critical_task = critical_tasks.critical_task(
-        agent=critic,
-        research_report=research_task.output
-    )
-    
-    architect_task = solution_architect_tasks.solution_architect_task(
-        agent=architect,
-        idea=input.raw_idea,
-        research_report=research_task.output,
-        critical_analysis=critical_task.output,
-        team_strength=input.team_strength
-    )
-    
-    pitch_task = pitch_tasks.pitch_task(
-        agent=pitch_gen,
-        mvp_plan=architect_task.output
-    )
-
-    # Create and configure the Crew
-    crew = Crew(
-        agents=[researcher, critic, architect, pitch_gen],
-        tasks=[research_task, critical_task, architect_task, pitch_task],
-        process=Process.sequential,
-        verbose=True,
-        llm=llm
-    )
-
-    try:
-        # Kick off the crew's work
-        result = crew.kickoff()
-        return {"success": True, "result": result}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "service": "AI Strategist"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
- 
+
+# ===================================
+# TESTING SCRIPT - test_workflow.py  
+# ===================================
+
+"""
+# Create this file to test your workflow
+from backend.orchestrator import AIStrategistOrchestrator
+
+def test_personalization():
+    orchestrator = AIStrategistOrchestrator()
+    
+    test_cases = [
+        {"team": "Frontend", "expected": "UI/UX"},
+        {"team": "AI/ML", "expected": "algorithm"},
+        {"team": "Backend", "expected": "API"}
+    ]
+    
+    for test in test_cases:
+        print(f"\n{'='*50}")
+        print(f"Testing {test['team']} team")
+        print(f"{'='*50}")
+        
+        result = orchestrator.run_strategy_workflow(
+            theme="AI in Education",
+            idea="Language learning app",
+            team_strength=test["team"]
+        )
+        
+        if result["success"]:
+            mvp = result["mvp_plan"]
+            print(f"MVP: {mvp[:200]}...")
+            
+            if test["expected"].lower() in mvp.lower():
+                print(f"✅ PASS: Found '{test['expected']}' in output")
+            else:
+                print(f"❌ FAIL: Missing '{test['expected']}' in output")
+        else:
+            print(f"❌ ERROR: {result['error']}")
+
+if __name__ == "__main__":
+    test_personalization()
+"""

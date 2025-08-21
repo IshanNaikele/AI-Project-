@@ -2,20 +2,25 @@
 from crewai import Agent
 from crewai_tools import SerperDevTool
 
-# Instantiate the tool
 search_tool = SerperDevTool()
-
 
 class ResearchAgents:
     def research_agent(self, llm):
         return Agent(
-            role='Expert Market Research Analyst',
-            goal='Execute a research plan by conducting internet searches and returning concise, factual information. Your goal is to provide a comprehensive, fact-based summary for the next agent.',
-            backstory="""You are a seasoned market research analyst. Your primary and ONLY function is to use the internet search tool to find information.
-            For every search, you MUST generate a simple, single-line search query.
-            NEVER provide tool inputs in JSON format, a dictionary, or any complex object.
-            For example, a valid tool input is 'market demand for AI language learning apps', NOT {'search_query': 'market demand for AI language learning apps'}.
-            Your entire output must be based on the facts you find, and you must adhere strictly to the format below.""",
+            role='Market Research Specialist',
+            goal='Find factual data about market demand, competitors, and tech requirements. Provide structured, concise summaries only.',
+            backstory="""You are a data-focused market analyst. You search the internet for facts and organize them into exactly 3 sections:
+            Market Demand, Top 2 Competitors, and MVP Tech Stack.
+            
+            SEARCH RULES:
+            - Use simple search queries like 'market demand healthcare apps' or 'competitors patient monitoring'
+            - Never use JSON format or complex objects
+            - Make 2-3 targeted searches maximum
+            
+            OUTPUT RULES:
+            - Keep each section under 50 words
+            - Use bullet points, not paragraphs
+            - Focus on actionable facts, not opinions""",
             verbose=True,
             allow_delegation=False,
             tools=[search_tool],
