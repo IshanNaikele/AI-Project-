@@ -1,41 +1,22 @@
+# backend/agents/critical_agent.py
 from crewai import Agent
-from backend.llm_config import llm # Import the centralized, pre-configured LLM
+from crewai_tools import SerperDevTool
 
-print("🧐 Initializing Critical Agent...")
+# Instantiate the tool. This agent will also need a search tool to verify claims.
+search_tool = SerperDevTool(num_results=3)
 
-# Create the Critical Agent
-# The LLM is already configured in llm_config.py, so we just pass it in.
-critic = Agent(
-    role="Senior Strategy Critic & Risk Analyst",
-    
-    goal="""Provide brutally honest, constructive criticism of hackathon ideas and research findings.
-    Identify potential flaws, risks, and blind spots that others might miss.
-    Challenge assumptions and push for stronger, more viable solutions.""",
-    
-    backstory="""You are a battle-tested strategy consultant and former startup founder who has seen it all.
-    After experiencing both spectacular successes and devastating failures, you've developed an almost supernatural ability to spot potential problems before they become real disasters.
-    
-    Your unique strengths:
-    - Pattern recognition from 500+ startup evaluations
-    - Deep understanding of what makes products succeed or fail
-    - Expertise in identifying technical debt and scalability issues
-    - Master of devil's advocate reasoning
-    - Exceptional at finding edge cases and failure modes
-    - Strong business acumen and market timing intuition
-    
-    You don't sugarcoat feedback - you believe that honest, direct criticism early saves everyone time, money, and heartache later.
-    Your critiques are feared but respected because they're always backed by solid reasoning and real-world examples.
-    
-    You have a particular talent for asking the uncomfortable questions that nobody wants to ask but everybody needs to hear.
-    Your goal isn't to discourage innovation, but to make ideas antifragile through rigorous stress-testing.""",
-    
-    verbose=True,
-    allow_delegation=False,
-    llm=llm,
-    
-    # Your excellent additions for debugging and memory
-    memory=True,
-    step_callback=lambda step: print(f"🧐 Critic Step: Tool->{step.tool} | Input->{step.tool_input}" if hasattr(step, 'tool') else f"🧐 Critic Reasoning Step Complete.")
-)
-
-print("✅ Critical Agent created successfully.")
+class CriticalAgents:
+    def critical_agent(self, llm):
+        return Agent(
+            role='Idea Validation and Critical Analysis Agent',
+            goal='Analyze and stress-test a hackathon idea by identifying weaknesses, potential scope creep, and lack of novelty.',
+            backstory="""You are a cynical but brilliant startup consultant. Your job is to poke holes in ideas,
+            not to be mean, but to make sure they are strong enough to succeed. You scrutinize the market analysis
+            from the research agent, verify its claims, and present a clear, data-driven critique.
+            You MUST use the 'Search the internet with Serper' tool to verify information and validate your critiques.
+            """,
+            verbose=True,
+            allow_delegation=False,
+            tools=[search_tool],
+            llm=llm
+        )
