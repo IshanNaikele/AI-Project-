@@ -3,7 +3,7 @@ from backend.agents.research_agent import ResearchAgents
 from backend.agents.critical_agent import CriticalAgents
 from backend.agents.architect_agent import SolutionArchitectAgents
 from backend.agents.pitch_agent import PitchAgents
-
+from langchain_groq import ChatGroq
 from backend.tasks import ResearchTasks, CriticalTasks, SolutionArchitectTasks, PitchTasks, TaskValidator
 from crewai import Crew, Process
 from langchain_community.chat_models import ChatLiteLLM
@@ -21,6 +21,16 @@ class AIStrategistOrchestrator:
             model="ollama/gemma:2b", 
             base_url="http://localhost:8080"
         )
+        groq_api_key = os.getenv("GROQ_API_KEY")
+        if groq_api_key:
+            # Set up Groq environment variables
+            os.environ["OPENAI_API_KEY"] = groq_api_key
+            os.environ["OPENAI_API_BASE"] = "https://api.groq.com/openai/v1"
+            # Groq LLM string (not an object)
+            self.groq_llm = "groq/llama3-8b-8192"  # or "groq/mixtral-8x7b-32768"
+        else:
+            print("⚠️ GROQ_API_KEY not found, falling back to local LLM for all agents")
+            self.groq_llm = self.llm
         self.task_validator = TaskValidator()
 
     def validate_team_strength(self, team_strength: str) -> str:
@@ -278,8 +288,9 @@ class AIStrategistOrchestrator:
                 "Failure recovery and error handling"
             ],
             "llm_config": {
-                "model": "ollama/gemma:2b",
-                "base_url": "http://localhost:8080"
+                "research_critical_model": "ollama/gemma:2b",
+                "research_critical_base_url": "http://localhost:8080",
+                "architect_pitch_model": self.llm if isinstance(self.llm, str) else "groq/llama3-8b-8192"
             },
             "validation_enabled": True,
             "quality_threshold": 0.6
