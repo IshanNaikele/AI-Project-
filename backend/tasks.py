@@ -37,7 +37,8 @@ class ResearchTasks:
         }
         return constraints.get(team_strength, constraints["Full-Stack"])
 
-    def research_task(self, agent, theme, idea, team_strength):
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def research_task(self, agent, theme, idea, team_strength, hackathon_duration):
         constraints = self.get_team_research_constraints(team_strength)
         
         return Task(
@@ -46,27 +47,28 @@ class ResearchTasks:
             Theme: '{theme}'
             Idea: '{idea}'
             Team Strength: {team_strength}
+            Hackathon Duration: {hackathon_duration} hours
             
             **CRITICAL RESEARCH REQUIREMENTS:**
             
             1. **NICHE COMPETITOR ANALYSIS** (Focus: {constraints['competitor_type']}):
-               - Find 2 major competitors (obvious ones everyone knows)
-               - Find 3-4 smaller/niche solutions that solve PARTS of this problem
-               - For each competitor, note: Name, core feature, what they DON'T do
-               - Identify specific gaps that a {team_strength} team can fill in 9 hours
+                - Find 2 major competitors (obvious ones everyone knows)
+                - Find 3-4 smaller/niche solutions that solve PARTS of this problem
+                - For each competitor, note: Name, core feature, what they DON'T do
+                - Identify specific gaps that a {team_strength} team can fill in {hackathon_duration} hours
             
             2. **TECHNICAL STACK RESEARCH** (Priority: {constraints['tech_priority']}):
-               - Recommend specific APIs for: {constraints['api_focus']}
-               - Avoid suggesting: {constraints['avoid_research']}
-               - Include setup time estimates (under 1 hour total)
-               - Provide fallback options if primary APIs fail
-               - Focus on free/freemium tiers for hackathon use
+                - Recommend specific APIs for: {constraints['api_focus']}
+                - Avoid suggesting: {constraints['avoid_research']}
+                - Include setup time estimates (under 1 hour total)
+                - Provide fallback options if primary APIs fail
+                - Focus on free/freemium tiers for hackathon use
             
             3. **HACKATHON-SPECIFIC MARKET INTELLIGENCE**:
-               - Identify 2-3 features missing from ALL existing solutions
-               - Focus on features that showcase {team_strength} team strengths
-               - Highlight quick wins that can be demo'd in 3 minutes
-               - Note any API rate limits or costs for demo day
+                - Identify 2-3 features missing from ALL existing solutions
+                - Focus on features that showcase {team_strength} team strengths
+                - Highlight quick wins that can be demo'd in 3 minutes
+                - Note any API rate limits or costs for demo day
             
             **OUTPUT FORMAT REQUIREMENTS:**
             ```
@@ -88,12 +90,12 @@ class ResearchTasks:
             ```
             
             **CRITICAL CONSTRAINTS:**
-            - All recommendations must be buildable by {team_strength} team in 6-8 hours
+            - All recommendations must be buildable by {team_strength} team in {hackathon_duration - 6} hours, leaving 6 hours for bugs, polish, and demo prep.
             - Every API must have a free tier or reasonable demo costs
             - Focus on solutions that can be live-demo'd confidently
             - Avoid generic advice - be specific to {team_strength} capabilities
             """,
-            expected_output=f"Detailed research report with competitor analysis, technical recommendations, and hackathon-specific opportunities optimized for {team_strength} team",
+            expected_output=f"Detailed research report with competitor analysis, technical recommendations, and hackathon-specific opportunities optimized for {team_strength} team for a {hackathon_duration}-hour hackathon",
             agent=agent,
         )
 
@@ -127,11 +129,12 @@ class CriticalTasks:
         }
         return profiles.get(team_strength, profiles["Full-Stack"])
 
-    def critical_task(self, agent, research_report, idea, team_strength):
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def critical_task(self, agent, research_report, idea, team_strength, hackathon_duration):
         risk_profile = self.get_team_risk_profile(team_strength)
         
         return Task(
-            description=f"""BRUTAL HACKATHON REALITY CHECK
+            description=f"""BRUTAL HACKATHON REALITY CHECK for a {hackathon_duration}-hour hackathon
             
             Research Context: {research_report}
             Original Idea: {idea}
@@ -142,32 +145,32 @@ class CriticalTasks:
             As a hackathon mentor who has seen teams fail repeatedly, analyze these specific failure modes:
             
             1. **SCOPE CREEP RISKS for {team_strength} teams**:
-               - Identify features that will consume >2 hours each
-               - Flag anything that doesn't match {team_strength} core strength
-               - Specific risk: {risk_profile['scope_creep']}
-               - List features to CUT immediately to stay in scope
+                - Identify features that will consume >{hackathon_duration / 4} hours each
+                - Flag anything that doesn't match {team_strength} core strength
+                - Specific risk: {risk_profile['scope_creep']}
+                - List features to CUT immediately to stay in scope
             
             2. **TECHNICAL DEBT & DEMO RISKS**:
-               - API failures during demo: which APIs are most unreliable?
-               - Integration hell: where will components not work together?
-               - Specific risk: {risk_profile['technical_debt']}
-               - What's the backup plan if main tech fails?
+                - API failures during demo: which APIs are most unreliable?
+                - Integration hell: where will components not work together?
+                - Specific risk: {risk_profile['technical_debt']}
+                - What's the backup plan if main tech fails?
             
             3. **COMPETITIVE REALITY CHECK**:
-               - Based on research, why might existing solutions already win?
-               - What makes this NOT just "another wrapper around existing APIs"?
-               - If judges ask "how is this different?", what's the answer?
+                - Based on research, why might existing solutions already win?
+                - What makes this NOT just "another wrapper around existing APIs"?
+                - If judges ask "how is this different?", what's the answer?
             
             4. **DEMO FAILURE SCENARIOS for {team_strength} teams**:
-               - What will go wrong during the 3-minute presentation?
-               - Specific risk: {risk_profile['demo_risk']}
-               - What happens if the main feature doesn't work live?
-               - How do you recover if internet/APIs fail?
+                - What will go wrong during the 3-minute presentation?
+                - Specific risk: {risk_profile['demo_risk']}
+                - What happens if the main feature doesn't work live?
+                - How do you recover if internet/APIs fail?
             
             5. **MARKET ADOPTION RISKS**:
-               - Why might users stick with existing solutions?
-               - What's the switching cost from current solutions?
-               - Is this solving a "nice to have" or "must have" problem?
+                - Why might users stick with existing solutions?
+                - What's the switching cost from current solutions?
+                - Is this solving a "nice to have" or "must have" problem?
             
             **OUTPUT FORMAT:**
             ```
@@ -195,7 +198,7 @@ class CriticalTasks:
             **BE BRUTALLY HONEST**: This team needs reality, not encouragement. 
             Point out every way this could fail and force them to have backup plans.
             """,
-            expected_output=f"Brutally honest risk assessment with specific failure scenarios and mitigation strategies for {team_strength} team",
+            expected_output=f"Brutally honest risk assessment with specific failure scenarios and mitigation strategies for {team_strength} team, considering a {hackathon_duration}-hour time limit",
             agent=agent,
         )
 
@@ -237,7 +240,8 @@ class SolutionArchitectTasks:
         }
         return templates.get(team_strength, templates["Full-Stack"])
 
-    def solution_architect_task(self, agent, idea, research_report, critical_analysis, team_strength):
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def solution_architect_task(self, agent, idea, research_report, critical_analysis, team_strength, hackathon_duration):
         arch_template = self.get_architecture_templates(team_strength)
         
         return Task(
@@ -247,6 +251,7 @@ class SolutionArchitectTasks:
             Research Intelligence: {research_report}
             Critical Risks: {critical_analysis}
             Team Type: {team_strength}
+            Hackathon Duration: {hackathon_duration} hours
             
             **ARCHITECTURE MANDATE for {team_strength} teams:**
             Pattern: {arch_template['core_pattern']}
@@ -257,34 +262,34 @@ class SolutionArchitectTasks:
             **SOLUTION ARCHITECTURE REQUIREMENTS:**
             
             1. **RUTHLESS SCOPE DEFINITION** (The ONE Thing):
-               - Define exactly ONE core feature that can be built in 6 hours
-               - This feature must showcase {team_strength} team strength
-               - Everything else gets CUT or simplified to basic functionality
-               - Feature must be demo-able in 30 seconds of the pitch
+                - Define exactly ONE core feature that can be built in {hackathon_duration * 0.4} hours or less.
+                - This feature must showcase {team_strength} team strength
+                - Everything else gets CUT or simplified to basic functionality
+                - Feature must be demo-able in 30 seconds of the pitch
             
             2. **API-FIRST ARCHITECTURE** (Especially for Frontend/Full-Stack):
-               - Specify exact APIs to replace custom development
-               - Include backup APIs in case primary fails
-               - Estimate costs for demo day (must be under $20)
-               - {arch_template['tech_constraints']}
+                - Specify exact APIs to replace custom development
+                - Include backup APIs in case primary fails
+                - Estimate costs for demo day (must be under $20)
+                - {arch_template['tech_constraints']}
             
             3. **TECH STACK SPECIFICATION** (Battle-tested only):
-               - Choose technologies with <1 hour setup time
-               - Every choice must have extensive documentation/tutorials
-               - Include specific version numbers and compatibility notes
-               - Prioritize technologies team already knows
+                - Choose technologies with <{hackathon_duration * 0.05} hour setup time
+                - Every choice must have extensive documentation/tutorials
+                - Include specific version numbers and compatibility notes
+                - Prioritize technologies team already knows
             
             4. **DEMO-OPTIMIZED FEATURE DESIGN**:
-               - Design features that work well in 3-minute live demos
-               - Plan for "wow moments" that showcase {team_strength} skills
-               - Include fallback demos if main feature fails
-               - Ensure features work without perfect internet connectivity
+                - Design features that work well in 3-minute live demos
+                - Plan for "wow moments" that showcase {team_strength} skills
+                - Include fallback demos if main feature fails
+                - Ensure features work without perfect internet connectivity
             
             5. **DIFFERENTIATION THROUGH {team_strength} EXCELLENCE**:
-               - Identify the ONE thing competitors can't do as well
-               - Ensure differentiation is immediately visible/demonstrable
-               - Make sure advantage comes from team skills, not just technology
-               - Create sustainable competitive advantage in the demo
+                - Identify the ONE thing competitors can't do as well
+                - Ensure differentiation is immediately visible/demonstrable
+                - Make sure advantage comes from team skills, not just technology
+                - Create sustainable competitive advantage in the demo
             
             **OUTPUT FORMAT:**
             ```
@@ -319,13 +324,13 @@ class SolutionArchitectTasks:
             ```
             
             **CRITICAL SUCCESS CRITERIA:**
-            - Buildable by {team_strength} team in 6-8 hours maximum
+            - Buildable by {team_strength} team in {hackathon_duration * 0.8} hours maximum, including setup
             - Demonstrates clear competitive advantage
             - Works reliably during live 3-minute demo
             - Showcases team's core strengths visibly
             - Has obvious commercial/practical value beyond hackathon
             """,
-            expected_output=f"Complete, executable MVP strategy optimized for {team_strength} team success with detailed technical architecture and demo plan",
+            expected_output=f"Complete, executable MVP strategy optimized for {team_strength} team success with detailed technical architecture and demo plan for a {hackathon_duration}-hour hackathon",
             agent=agent,
         )
 
@@ -359,11 +364,12 @@ class PitchTasks:
         }
         return templates.get(team_strength, templates["Full-Stack"])
 
-    def pitch_task(self, agent, mvp_plan, team_strength, theme):
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def pitch_task(self, agent, mvp_plan, team_strength, theme, hackathon_duration):
         pitch_template = self.get_pitch_templates(team_strength)
         
         return Task(
-            description=f"""WINNING HACKATHON PITCH STRATEGY
+            description=f"""WINNING HACKATHON PITCH STRATEGY for a {hackathon_duration}-hour hackathon
             
             MVP Strategy: {mvp_plan}
             Team Strength: {team_strength}
@@ -459,7 +465,7 @@ class PitchTasks:
             - Memorable and differentiated from other pitches
             - Confident delivery that matches team capabilities
             """,
-            expected_output=f"Complete 3-minute pitch script with exact timing, live demo choreography, and backup plans optimized for {team_strength} team presentation",
+            expected_output=f"Complete 3-minute pitch script with exact timing, live demo choreography, and backup plans optimized for {team_strength} team presentation for a {hackathon_duration}-hour hackathon",
             agent=agent,
         )
 
@@ -479,8 +485,8 @@ class TaskValidator:
                 "react", "vue", "fastapi", "pytorch", "streamlit", "api", "database"
             ]),
             "has_time_constraints": any(time_ref in task_output.lower() for time_ref in [
-                "hour", "time", "quick", "rapid", "fast"
-            ])
+                "hour", "time", "quick", "rapid", "fast", "9 hours", "24 hours", "48 hours"
+            ]) # MODIFICATION: Added specific hackathon durations to check for
         }
         
         return validation_results
@@ -491,14 +497,16 @@ class TaskValidator:
         return sum(validation_results.values()) / len(validation_results)
 
 # Usage example with validation
-def create_validated_research_task(agent, theme, idea, team_strength):
+# MODIFICATION: Added hackathon_duration parameter
+def create_validated_research_task(agent, theme, idea, team_strength, hackathon_duration):
     """Create research task with built-in validation"""
     task_creator = ResearchTasks()
-    task = task_creator.research_task(agent, theme, idea, team_strength)
+    task = task_creator.research_task(agent, theme, idea, team_strength, hackathon_duration)
     
     # Add validation metadata
     task.metadata = {
         "team_strength": team_strength,
+        "hackathon_duration": hackathon_duration,
         "expected_specificity": ["competitor analysis", "tech stack", "api recommendations"],
         "validation_required": True
     }

@@ -142,58 +142,61 @@ class PitchAgents:
             }
         }
 
-    def pitch_agent(self, llm):
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def pitch_agent(self, llm, hackathon_duration: int):
         return Agent(
             role='Hackathon Pitch Master',
-            goal='''Create compelling 3-minute pitch strategies that maximize demo impact, showcase 
-                   team strengths, and convince judges this project deserves to win among dozens 
-                   of competitors.''',
+            # MODIFICATION: Goal now explicitly mentions hackathon duration
+            goal=f'''Create compelling 3-minute pitch strategies that maximize demo impact in a {hackathon_duration}-hour hackathon, showcase 
+                    team strengths, and convince judges this project deserves to win among dozens 
+                    of competitors.''',
             
             backstory='''You are a master of hackathon presentations who has coached winners of major 
-                        hackathons including TechCrunch Disrupt, MIT Hackathon, AngelHack, and hundreds 
-                        of corporate innovation challenges. Your pitch strategies have a 74% win rate.
-                        
-                        YOUR PRESENTATION PHILOSOPHY:
-                        - SHOW, DON'T TELL: Live demos are 10x more convincing than descriptions
-                        - STORY STRUCTURE: Every winning pitch has setup, conflict, resolution, and impact
-                        - JUDGE PSYCHOLOGY: Technical judges want to see competence; business judges want to see value
-                        - MEMORABLE MOMENTS: Judges remember projects that create "wow" moments during demos
-                        - AUTHENTIC CONFIDENCE: Teams win when they genuinely believe in their solution
-                        
-                        YOUR EXPERTISE INCLUDES:
-                        - Deep understanding of judge psychology and evaluation criteria across different hackathon types
-                        - Pattern recognition for pitch elements that create memorable impressions
-                        - Knowledge of demo techniques that work reliably under pressure
-                        - Understanding of how to showcase different types of technical achievements
-                        - Experience with recovery strategies when live demos fail
-                        
-                        YOUR WINNING PITCH METHODOLOGY:
-                        1. HOOK OPTIMIZATION: Create opening moments that grab and hold attention
-                        2. DEMO CHOREOGRAPHY: Script user actions and system responses for maximum impact
-                        3. CREDIBILITY BUILDING: Establish technical competence without overwhelming detail
-                        4. IMPACT AMPLIFICATION: Connect technical achievement to real-world value
-                        5. MEMORABLE CLOSING: End with statements that judges quote in their decisions
-                        
-                        YOUR TRACK RECORD:
-                        - 200+ winning pitch strategies across all hackathon categories
-                        - 85% demo success rate (demos work perfectly during presentations)
-                        - 90% of coached teams finish in top 10 of their hackathons
-                        - Created signature moves that have been copied across the hackathon circuit
-                        
-                        PITCH SUCCESS FACTORS YOU OPTIMIZE FOR:
-                        - Clear value proposition communicated in first 30 seconds
-                        - Live demo that works flawlessly and showcases key differentiators
-                        - Technical credibility without overwhelming jargon
-                        - Obvious commercial viability and market opportunity
-                        - Memorable differentiation from other hackathon projects
-                        - Confident delivery that matches team capabilities and project ambition''',
+                         hackathons including TechCrunch Disrupt, MIT Hackathon, AngelHack, and hundreds 
+                         of corporate innovation challenges. Your pitch strategies have a 74% win rate.
+                         
+                         YOUR PRESENTATION PHILOSOPHY:
+                         - SHOW, DON'T TELL: Live demos are 10x more convincing than descriptions
+                         - STORY STRUCTURE: Every winning pitch has setup, conflict, resolution, and impact
+                         - JUDGE PSYCHOLOGY: Technical judges want to see competence; business judges want to see value
+                         - MEMORABLE MOMENTS: Judges remember projects that create "wow" moments during demos
+                         - AUTHENTIC CONFIDENCE: Teams win when they genuinely believe in their solution
+                         
+                         YOUR EXPERTISE INCLUDES:
+                         - Deep understanding of judge psychology and evaluation criteria across different hackathon types
+                         - Pattern recognition for pitch elements that create memorable impressions
+                         - Knowledge of demo techniques that work reliably under pressure
+                         - Understanding of how to showcase different types of technical achievements
+                         - Experience with recovery strategies when live demos fail
+                         
+                         YOUR WINNING PITCH METHODOLOGY:
+                         1. HOOK OPTIMIZATION: Create opening moments that grab and hold attention
+                         2. DEMO CHOREOGRAPHY: Script user actions and system responses for maximum impact
+                         3. CREDIBILITY BUILDING: Establish technical competence without overwhelming detail
+                         4. IMPACT AMPLIFICATION: Connect technical achievement to real-world value
+                         5. MEMORABLE CLOSING: End with statements that judges quote in their decisions
+                         
+                         YOUR TRACK RECORD:
+                         - 200+ winning pitch strategies across all hackathon categories
+                         - 85% demo success rate (demos work perfectly during presentations)
+                         - 90% of coached teams finish in top 10 of their hackathons
+                         - Created signature moves that have been copied across the hackathon circuit
+                         
+                         PITCH SUCCESS FACTORS YOU OPTIMIZE FOR:
+                         - Clear value proposition communicated in first 30 seconds
+                         - Live demo that works flawlessly and showcases key differentiators
+                         - Technical credibility without overwhelming jargon
+                         - Obvious commercial viability and market opportunity
+                         - Memorable differentiation from other hackathon projects
+                         - Confident delivery that matches team capabilities and project ambition''',
             
             verbose=True,
             allow_delegation=False,
             llm=llm
         )
 
-    def enhanced_pitch_agent_with_team_focus(self, llm, team_strength: str):
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def enhanced_pitch_agent_with_team_focus(self, llm, team_strength: str, hackathon_duration: int):
         """Create pitch agent optimized for specific team strength presentation"""
         
         presentation_strategy = self.get_team_presentation_strategies(team_strength)
@@ -209,10 +212,12 @@ class PitchAgents:
         
         return Agent(
             role=f'{team_strength} Team Pitch Specialist',
+            # MODIFICATION: Goal now explicitly mentions hackathon duration
             goal=f'''Create winning pitch strategies specifically optimized for {team_strength} teams, 
                     ensuring presentations showcase {team_strength} expertise while addressing common 
-                    {team_strength} team presentation weaknesses.''',
+                    {team_strength} team presentation weaknesses in a {hackathon_duration}-hour hackathon context.''',
             
+            # MODIFICATION: Backstory now references hackathon duration
             backstory=f'''You are the premier pitch coach for {team_strength} teams in hackathon environments, 
                          with exclusive expertise in maximizing {team_strength} team presentation success. 
                          You have coached 50+ winning {team_strength} teams to victory.

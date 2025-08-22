@@ -1,3 +1,4 @@
+# backend/orchestrator.py
 from backend.agents.research_agent import ResearchAgents
 from backend.agents.critical_agent import CriticalAgents
 from backend.agents.architect_agent import SolutionArchitectAgents
@@ -67,8 +68,9 @@ class AIStrategistOrchestrator:
             "team_specific": validation_results.get("mentions_team_strength", False)
         }
 
-    def run_strategy_workflow(self, theme: str, idea: str, team_strength: str) -> Dict[str, Any]:
-        """Execute the enhanced workflow with team-specific optimizations"""
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def run_strategy_workflow(self, theme: str, idea: str, team_strength: str, hackathon_duration: int) -> Dict[str, Any]:
+        """Execute the enhanced workflow with time and team-specific optimizations"""
         
         # Validate inputs
         team_strength = self.validate_team_strength(team_strength)
@@ -76,9 +78,10 @@ class AIStrategistOrchestrator:
         workflow_start = time.time()
         
         try:
-            self.log_step_progress(0, 4, f"Initializing workflow for {team_strength} team", "running")
+            # The total number of steps is 4, as you requested to skip the Consistency Agent
+            self.log_step_progress(0, 4, f"Initializing workflow for {team_strength} team and {hackathon_duration}-hour hackathon", "running")
             
-            # Initialize agents
+            # Initialize agents and tasks
             research_agents = ResearchAgents()
             critical_agents = CriticalAgents()
             solution_architect_agents = SolutionArchitectAgents()
@@ -93,8 +96,9 @@ class AIStrategistOrchestrator:
             step_start = time.time()
             self.log_step_progress(1, 4, "Market Research & Competitor Analysis")
             
-            researcher = research_agents.research_agent(llm=self.llm)
-            research_task = research_tasks.research_task(researcher, theme, idea, team_strength)
+            # MODIFICATION: Passed `hackathon_duration` to the agent and task
+            researcher = research_agents.enhanced_research_agent_with_team_focus(llm=self.llm, team_strength=team_strength, hackathon_duration=hackathon_duration)
+            research_task = research_tasks.research_task(researcher, theme, idea, team_strength, hackathon_duration)
             
             research_crew = Crew(
                 agents=[researcher],
@@ -104,25 +108,18 @@ class AIStrategistOrchestrator:
             )
             research_result = research_crew.kickoff()
             
-            # Validate research output
-            research_validation = self.validate_task_output(
-                str(research_result), team_strength, "Research"
-            )
-            
+            research_validation = self.validate_task_output(str(research_result), team_strength, "Research")
             step_time = time.time() - step_start
-            self.log_step_progress(
-                1, 4, 
-                f"Research complete ({step_time:.1f}s) - Quality: {research_validation['quality_score']:.2f}",
-                "complete"
-            )
+            self.log_step_progress(1, 4, f"Research complete ({step_time:.1f}s) - Quality: {research_validation['quality_score']:.2f}", "complete")
 
             # STEP 2: Enhanced Critical Analysis  
             step_start = time.time()
             self.log_step_progress(2, 4, "Critical Risk Analysis & Failure Prevention")
             
-            critic = critical_agents.critical_agent(llm=self.llm)
+            # MODIFICATION: Passed `hackathon_duration` to the agent and task
+            critic = critical_agents.enhanced_critical_agent_with_team_focus(llm=self.llm, team_strength=team_strength, hackathon_duration=hackathon_duration)
             critical_task = critical_tasks.critical_task(
-                critic, str(research_result), idea, team_strength
+                critic, str(research_result), idea, team_strength, hackathon_duration
             )
             
             critical_crew = Crew(
@@ -133,25 +130,18 @@ class AIStrategistOrchestrator:
             )
             critical_result = critical_crew.kickoff()
             
-            # Validate critical analysis output
-            critical_validation = self.validate_task_output(
-                str(critical_result), team_strength, "Critical Analysis"
-            )
-            
+            critical_validation = self.validate_task_output(str(critical_result), team_strength, "Critical Analysis")
             step_time = time.time() - step_start
-            self.log_step_progress(
-                2, 4,
-                f"Critical analysis complete ({step_time:.1f}s) - Quality: {critical_validation['quality_score']:.2f}",
-                "complete"
-            )
+            self.log_step_progress(2, 4, f"Critical analysis complete ({step_time:.1f}s) - Quality: {critical_validation['quality_score']:.2f}", "complete")
 
             # STEP 3: Enhanced Solution Architecture
             step_start = time.time()
             self.log_step_progress(3, 4, f"MVP Architecture for {team_strength} team")
             
-            architect = solution_architect_agents.solution_architect_agent(llm=self.llm)
+            # MODIFICATION: Passed `hackathon_duration` to the agent and task
+            architect = solution_architect_agents.enhanced_solution_architect_with_team_focus(llm=self.llm, team_strength=team_strength, hackathon_duration=hackathon_duration)
             architect_task = solution_architect_tasks.solution_architect_task(
-                architect, idea, str(research_result), str(critical_result), team_strength
+                architect, idea, str(research_result), str(critical_result), team_strength, hackathon_duration
             )
             
             architect_crew = Crew(
@@ -162,25 +152,18 @@ class AIStrategistOrchestrator:
             )
             architect_result = architect_crew.kickoff()
             
-            # Validate architecture output
-            architect_validation = self.validate_task_output(
-                str(architect_result), team_strength, "Solution Architecture"
-            )
-            
+            architect_validation = self.validate_task_output(str(architect_result), team_strength, "Solution Architecture")
             step_time = time.time() - step_start
-            self.log_step_progress(
-                3, 4,
-                f"Architecture complete ({step_time:.1f}s) - Quality: {architect_validation['quality_score']:.2f}",
-                "complete"
-            )
+            self.log_step_progress(3, 4, f"Architecture complete ({step_time:.1f}s) - Quality: {architect_validation['quality_score']:.2f}", "complete")
 
             # STEP 4: Enhanced Pitch Generation
             step_start = time.time()
             self.log_step_progress(4, 4, "Winning Pitch Strategy Generation")
             
-            pitch_gen = pitch_agents.pitch_agent(llm=self.llm)
+            # MODIFICATION: Passed `hackathon_duration` to the agent and task
+            pitch_gen = pitch_agents.enhanced_pitch_agent_with_team_focus(llm=self.llm, team_strength=team_strength, hackathon_duration=hackathon_duration)
             pitch_task = pitch_tasks.pitch_task(
-                pitch_gen, str(architect_result), team_strength, theme
+                pitch_gen, str(architect_result), team_strength, theme, hackathon_duration
             )
             
             pitch_crew = Crew(
@@ -191,19 +174,11 @@ class AIStrategistOrchestrator:
             )
             pitch_result = pitch_crew.kickoff()
             
-            # Validate pitch output
-            pitch_validation = self.validate_task_output(
-                str(pitch_result), team_strength, "Pitch Strategy"
-            )
-            
+            pitch_validation = self.validate_task_output(str(pitch_result), team_strength, "Pitch Strategy")
             step_time = time.time() - step_start
             total_time = time.time() - workflow_start
             
-            self.log_step_progress(
-                4, 4,
-                f"Pitch complete ({step_time:.1f}s) - Quality: {pitch_validation['quality_score']:.2f}",
-                "complete"
-            )
+            self.log_step_progress(4, 4, f"Pitch complete ({step_time:.1f}s) - Quality: {pitch_validation['quality_score']:.2f}", "complete")
             
             print(f"🎉 Workflow completed in {total_time:.1f}s for {team_strength} team!")
 
@@ -221,6 +196,7 @@ class AIStrategistOrchestrator:
                 "team_strength": team_strength,
                 "theme": theme,
                 "original_idea": idea,
+                "hackathon_duration": hackathon_duration,
                 
                 # Core outputs
                 "research": str(research_result),

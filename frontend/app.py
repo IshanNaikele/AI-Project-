@@ -34,7 +34,7 @@ st.markdown("""
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-        .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
+        .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div, .stNumberInput>div>div>input {
             border-radius: 0.5rem;
             border: 2px solid #e9ecef;
         }
@@ -88,6 +88,14 @@ with col2:
         ("Frontend", "Backend", "AI/ML", "Full-Stack"),
         help="What is your team best at? This will tailor the strategy."
     )
+    # NEW: Add hackathon duration input
+    hackathon_duration = st.number_input(
+        "Hackathon Duration (in hours)",
+        min_value=1,
+        max_value=168,  # A week-long hackathon
+        value=24,
+        help="The total time available for the hackathon."
+    )
     
     # Show what each strength means
     strength_info = {
@@ -100,11 +108,12 @@ with col2:
 
 # Generate Strategy Button
 if st.button("🎯 Generate Personalized Strategy", type="primary"):
-    # FIXED: Updated payload structure to match FastAPI backend
+    # MODIFICATION: Updated payload structure to include hackathon_duration
     payload = {
         "theme": hackathon_theme,
         "idea": raw_idea, 
-        "team_strength": team_strength
+        "team_strength": team_strength,
+        "hackathon_duration": hackathon_duration # <-- NEW FIELD
     }
 
     st.markdown("---")
@@ -185,6 +194,7 @@ if st.button("🎯 Generate Personalized Strategy", type="primary"):
 **Theme:** {hackathon_theme}
 **Idea:** {raw_idea}
 **Team Strength:** {team_strength}
+**Hackathon Duration:** {hackathon_duration} hours
 
 ## Market Research
 {data.get("research", "N/A")}

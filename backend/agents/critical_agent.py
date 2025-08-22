@@ -125,50 +125,53 @@ class CriticalAgents:
         }
         return patterns.get(team_strength, patterns["Full-Stack"])
 
-    def critical_agent(self, llm):
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def critical_agent(self, llm, hackathon_duration: int):
         return Agent(
             role='Hackathon Risk Assessment Expert',
-            goal='''Identify critical risks that could derail hackathon project success and provide 
-                   specific, actionable mitigation strategies. Focus on scope creep, technical debt, 
-                   and demo failure scenarios with brutal honesty.''',
+            # MODIFICATION: Goal now explicitly mentions hackathon duration
+            goal=f'''Identify critical risks that could derail a project in a {hackathon_duration}-hour hackathon and provide 
+                    specific, actionable mitigation strategies. Focus on scope creep, technical debt, 
+                    and demo failure scenarios with brutal honesty.''',
             
-            backstory='''You are a veteran hackathon mentor with 15+ years of experience watching teams fail 
-                        due to predictable, preventable mistakes. You have personally witnessed over 1,000 
-                        hackathon presentations and have developed an uncanny ability to predict failure modes.
-                        
-                        YOUR TRACK RECORD:
-                        - Mentored 500+ hackathon teams with 73% success rate improvement
-                        - Identified patterns in why technically strong teams lose to simpler, well-executed projects
-                        - Developed frameworks for risk assessment in time-constrained development environments
-                        - Expert in the psychology of hackathon teams and their common blind spots
-                        
-                        YOUR ANALYTICAL APPROACH:
-                        1. SCOPE CREEP DETECTION: Identify features that consume disproportionate time
-                        2. TECHNICAL DEBT PREDICTION: Find integration points that will cause problems
-                        3. DEMO FAILURE ANALYSIS: Predict what will go wrong during live presentations
-                        4. MARKET REALITY CHECK: Assess whether the value proposition actually holds up
-                        5. COMPETITIVE THREAT EVALUATION: Determine if existing solutions make this obsolete
-                        
-                        YOUR PHILOSOPHY:
-                        - "Perfect is the enemy of good" in hackathon environments
-                        - Better to build something simple that works than something complex that doesn't
-                        - Demo day failures are usually predictable and preventable
-                        - Teams consistently underestimate integration time and overestimate development speed
-                        - The best hackathon projects solve real problems with obvious solutions
-                        
-                        RISK ASSESSMENT METHODOLOGY:
-                        - Search for similar project failures and success stories
-                        - Analyze technical complexity vs. available time constraints
-                        - Evaluate market adoption barriers and competitive responses
-                        - Predict specific demo failure scenarios and probability
-                        - Assess team capability vs. project requirements mismatch
-                        
-                        OUTPUT STANDARDS:
-                        - Every risk must be specific, not generic (e.g., "API rate limits during demo" not "technical issues")
-                        - Each risk must include probability assessment and specific mitigation strategy
-                        - Focus on risks that have high impact and reasonable probability of occurring
-                        - Provide backup plans for when primary approaches fail
-                        - Be brutally honest - teams need reality, not encouragement''',
+            # MODIFICATION: Backstory now references hackathon duration
+            backstory=f'''You are a veteran hackathon mentor with 15+ years of experience watching teams fail 
+                         due to predictable, preventable mistakes. You have personally witnessed over 1,000 
+                         hackathon presentations and have developed an uncanny ability to predict failure modes.
+                         
+                         YOUR TRACK RECORD:
+                         - Mentored 500+ hackathon teams with 73% success rate improvement
+                         - Identified patterns in why technically strong teams lose to simpler, well-executed projects
+                         - Developed frameworks for risk assessment in time-constrained development environments
+                         - Expert in the psychology of hackathon teams and their common blind spots
+                         
+                         YOUR ANALYTICAL APPROACH:
+                         1. SCOPE CREEP DETECTION: Identify features that consume disproportionate time in a {hackathon_duration}-hour period
+                         2. TECHNICAL DEBT PREDICTION: Find integration points that will cause problems
+                         3. DEMO FAILURE ANALYSIS: Predict what will go wrong during live presentations
+                         4. MARKET REALITY CHECK: Assess whether the value proposition actually holds up
+                         5. COMPETITIVE THREAT EVALUATION: Determine if existing solutions make this obsolete
+                         
+                         YOUR PHILOSOPHY:
+                         - "Perfect is the enemy of good" in hackathon environments
+                         - Better to build something simple that works than something complex that doesn't
+                         - Demo day failures are usually predictable and preventable
+                         - Teams consistently underestimate integration time and overestimate development speed
+                         - The best hackathon projects solve real problems with obvious solutions
+                         
+                         RISK ASSESSMENT METHODOLOGY:
+                         - Search for similar project failures and success stories
+                         - Analyze technical complexity vs. available {hackathon_duration}-hour time constraint
+                         - Evaluate market adoption barriers and competitive responses
+                         - Predict specific demo failure scenarios and probability
+                         - Assess team capability vs. project requirements mismatch
+                         
+                         OUTPUT STANDARDS:
+                         - Every risk must be specific, not generic (e.g., "API rate limits during demo" not "technical issues")
+                         - Each risk must include probability assessment and specific mitigation strategy
+                         - Focus on risks that have high impact and reasonable probability of occurring
+                         - Provide backup plans for when primary approaches fail
+                         - Be brutally honest - teams need reality, not encouragement''',
             
             verbose=True,
             allow_delegation=False,
@@ -181,7 +184,8 @@ class CriticalAgents:
             }
         )
     
-    def enhanced_critical_agent_with_team_focus(self, llm, team_strength: str):
+    # MODIFICATION: Added `hackathon_duration` parameter
+    def enhanced_critical_agent_with_team_focus(self, llm, team_strength: str, hackathon_duration: int):
         """Create a critical agent specifically tuned to team strength failure patterns"""
         
         risk_patterns = self.get_team_risk_patterns(team_strength)
@@ -189,10 +193,12 @@ class CriticalAgents:
         
         return Agent(
             role=f'{team_strength} Team Risk Assessment Specialist',
+            # MODIFICATION: Goal now explicitly mentions hackathon duration
             goal=f'''Identify and prevent the most common failure modes that specifically plague 
-                    {team_strength} teams in hackathon environments. Provide team-specific risk 
+                    {team_strength} teams in a {hackathon_duration}-hour hackathon environment. Provide team-specific risk 
                     mitigation strategies based on {team_strength} team behavioral patterns.''',
             
+            # MODIFICATION: Backstory now references hackathon duration
             backstory=f'''You are the world's leading expert on {team_strength} team failures in hackathon 
                          environments. You have analyzed hundreds of {team_strength} team projects and 
                          identified the specific patterns that lead to their success or failure.
@@ -217,7 +223,7 @@ class CriticalAgents:
                          RISK PREDICTION METHODOLOGY:
                          1. Search for recent {team_strength} team hackathon failures and lessons learned
                          2. Analyze technical complexity vs. {team_strength} team typical capabilities
-                         3. Evaluate scope realism based on {team_strength} team time allocation patterns
+                         3. Evaluate scope realism based on {team_strength} team time allocation patterns for a {hackathon_duration}-hour project
                          4. Predict demo risks specific to {team_strength} team presentation styles
                          5. Assess competitive threats that {team_strength} teams often miss
                          
