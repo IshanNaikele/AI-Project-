@@ -203,134 +203,275 @@ class CriticalTasks:
         )
 
 class SolutionArchitectTasks:
-    """Enhanced Solution Architecture with ruthless hackathon pragmatism"""
+    """Enhanced Solution Architecture with comprehensive MVP planning and team-first approach"""
     
     @staticmethod
     def get_architecture_templates(team_strength: str) -> Dict[str, Any]:
-        """Get architecture patterns optimized for each team type"""
+        """Get comprehensive architecture patterns optimized for each team type"""
         templates = {
             "Frontend": {
-                "core_pattern": "API-First UI with third-party backend services",
-                "time_allocation": "70% UI/UX, 20% API integration, 10% setup",
-                "demo_focus": "User experience, visual design, interaction flows",
-                "tech_constraints": "Use existing APIs for ALL complex logic",
-                "success_metric": "Judges can see and interact with beautiful interface"
+                "core_pattern": "API-First UI with stunning visual experience",
+                "time_allocation": "70% UI/UX development, 20% API integration, 10% setup/deployment",
+                "demo_focus": "User experience excellence, visual design impact, seamless interactions",
+                "tech_constraints": "Leverage existing APIs for ALL complex logic, focus on presentation layer",
+                "success_metric": "Judges are visually impressed and can interact intuitively",
+                "primary_skills": ["React/Vue mastery", "CSS/Animation expertise", "API integration", "Responsive design"],
+                "innovation_areas": ["UI/UX patterns", "Interactive visualizations", "User journey optimization"],
+                "wow_opportunities": ["Micro-interactions", "Real-time UI updates", "Beautiful data presentation"]
             },
             "Backend": {
-                "core_pattern": "API-centric with minimal frontend",
-                "time_allocation": "80% backend logic, 15% API design, 5% basic UI",
-                "demo_focus": "API performance, data processing, system architecture", 
-                "tech_constraints": "Build robust APIs, use basic frontend (Streamlit/simple HTML)",
-                "success_metric": "Judges can see data flowing and processing happening"
+                "core_pattern": "Robust API architecture with performance optimization",
+                "time_allocation": "75% backend logic/APIs, 15% data management, 10% basic frontend",
+                "demo_focus": "System performance, data processing capabilities, API reliability", 
+                "tech_constraints": "Build scalable APIs, use simple frontend (Streamlit/basic HTML)",
+                "success_metric": "Judges can see fast, reliable data processing and system architecture",
+                "primary_skills": ["API design", "Database optimization", "System architecture", "Performance tuning"],
+                "innovation_areas": ["Data processing algorithms", "System efficiency", "API design patterns"],
+                "wow_opportunities": ["Real-time data processing", "High-performance APIs", "Smart caching systems"]
             },
             "AI/ML": {
-                "core_pattern": "Model-centric with simple interface",
-                "time_allocation": "60% model work, 25% data pipeline, 15% basic UI",
-                "demo_focus": "Algorithm performance, model accuracy, intelligent features",
-                "tech_constraints": "Use pre-trained models or fine-tune existing ones",
-                "success_metric": "Judges can see AI making smart decisions in real-time"
+                "core_pattern": "Intelligence-first architecture with model showcase",
+                "time_allocation": "65% model/algorithm work, 20% data pipeline, 15% interface",
+                "demo_focus": "AI decision-making, model accuracy, intelligent insights generation",
+                "tech_constraints": "Leverage pre-trained models and fine-tune, minimize infrastructure complexity",
+                "success_metric": "Judges witness AI making visibly intelligent decisions in real-time",
+                "primary_skills": ["Model selection/fine-tuning", "Data preprocessing", "Algorithm optimization", "ML pipelines"],
+                "innovation_areas": ["Novel ML applications", "Model combination strategies", "AI-driven insights"],
+                "wow_opportunities": ["Real-time AI predictions", "Intelligent automation", "Smart data analysis"]
             },
             "Full-Stack": {
-                "core_pattern": "Balanced frontend-backend with clear separation",
-                "time_allocation": "40% frontend, 40% backend, 20% integration",
-                "demo_focus": "Complete user journey, end-to-end functionality",
-                "tech_constraints": "Choose mature, integrated frameworks",
-                "success_metric": "Judges can see complete, working application"
+                "core_pattern": "Balanced end-to-end solution with seamless integration",
+                "time_allocation": "40% frontend experience, 40% backend logic, 20% system integration",
+                "demo_focus": "Complete user journey, system cohesion, end-to-end functionality",
+                "tech_constraints": "Choose proven, integrated frameworks that work well together",
+                "success_metric": "Judges see a polished, complete application that works seamlessly",
+                "primary_skills": ["Full-stack frameworks", "System integration", "Database design", "User experience"],
+                "innovation_areas": ["System architecture", "Integration patterns", "User experience flows"],
+                "wow_opportunities": ["Seamless user journeys", "Real-time synchronization", "Intelligent system behavior"]
             }
         }
         return templates.get(team_strength, templates["Full-Stack"])
 
-    # MODIFICATION: Added `hackathon_duration` parameter
+    @staticmethod
+    def get_team_specific_tech_stack(team_strength: str, hackathon_duration: int) -> Dict[str, Any]:
+        """Get detailed tech recommendations based on team strength and time constraints"""
+        stacks = {
+            "Frontend": {
+                "primary_framework": "React with Vite (fastest setup)" if hackathon_duration >= 24 else "Vanilla JS with modern CSS",
+                "styling": "Tailwind CSS (rapid styling) + Framer Motion (animations)",
+                "api_integration": "Axios + React Query (data fetching)",
+                "deployment": "Vercel (instant deployment)",
+                "backup_stack": "Vue.js + Bootstrap if React fails",
+                "setup_time": "45 minutes maximum",
+                "key_libraries": ["react-router-dom", "lucide-react", "react-hook-form"]
+            },
+            "Backend": {
+                "primary_framework": "FastAPI (Python) - fastest API development",
+                "database": "SQLite (local) or Supabase (cloud) for quick setup",
+                "api_docs": "Auto-generated with FastAPI Swagger",
+                "deployment": "Railway or Render (simple deployment)",
+                "backup_stack": "Express.js + MongoDB if Python fails",
+                "setup_time": "30 minutes maximum",
+                "key_libraries": ["pydantic", "sqlalchemy", "python-multipart"]
+            },
+            "AI/ML": {
+                "primary_framework": "Python + Streamlit (ML-friendly UI)",
+                "ml_stack": "Hugging Face Transformers + scikit-learn",
+                "data_processing": "Pandas + NumPy",
+                "deployment": "Streamlit Community Cloud",
+                "backup_stack": "Gradio + Google Colab if Streamlit fails",
+                "setup_time": "20 minutes maximum",
+                "key_libraries": ["transformers", "torch", "streamlit", "plotly"]
+            },
+            "Full-Stack": {
+                "primary_framework": "Next.js (React + API routes) or MEAN stack",
+                "database": "MongoDB Atlas (cloud) or PostgreSQL",
+                "styling": "Tailwind CSS",
+                "deployment": "Vercel (frontend) + Railway (backend)",
+                "backup_stack": "Create React App + Express.js",
+                "setup_time": "60 minutes maximum",
+                "key_libraries": ["prisma", "next-auth", "react-query", "socket.io"]
+            }
+        }
+        return stacks.get(team_strength, stacks["Full-Stack"])
+
+    # ENHANCED SOLUTION ARCHITECT TASK
     def solution_architect_task(self, agent, idea, research_report, critical_analysis, team_strength, hackathon_duration):
         arch_template = self.get_architecture_templates(team_strength)
+        tech_stack = self.get_team_specific_tech_stack(team_strength, hackathon_duration)
         
         return Task(
-            description=f"""HACKATHON MVP ARCHITECT - WINNING STRATEGY DESIGN
+            description=f"""COMPREHENSIVE MVP ARCHITECT - WINNING STRATEGY BLUEPRINT
             
+            **CONTEXT ANALYSIS:**
             Original Idea: {idea}
             Research Intelligence: {research_report}
-            Critical Risks: {critical_analysis}
-            Team Type: {team_strength}
+            Critical Risk Assessment: {critical_analysis}
+            Team Strength: {team_strength}
             Hackathon Duration: {hackathon_duration} hours
+            Available Development Time: {hackathon_duration * 0.75} hours (25% buffer for issues)
             
-            **ARCHITECTURE MANDATE for {team_strength} teams:**
-            Pattern: {arch_template['core_pattern']}
-            Time Budget: {arch_template['time_allocation']}
-            Demo Focus: {arch_template['demo_focus']}
-            Success Metric: {arch_template['success_metric']}
+            **TEAM-FIRST ARCHITECTURE MANDATE:**
+            Core Pattern: {arch_template['core_pattern']}
+            Time Allocation: {arch_template['time_allocation']}
+            Primary Skills to Leverage: {arch_template['primary_skills']}
+            Innovation Focus Areas: {arch_template['innovation_areas']}
+            Success Definition: {arch_template['success_metric']}
             
-            **SOLUTION ARCHITECTURE REQUIREMENTS:**
+            **COMPREHENSIVE MVP PLANNING REQUIREMENTS:**
             
-            1. **RUTHLESS SCOPE DEFINITION** (The ONE Thing):
-                - Define exactly ONE core feature that can be built in {hackathon_duration * 0.4} hours or less.
-                - This feature must showcase {team_strength} team strength
-                - Everything else gets CUT or simplified to basic functionality
-                - Feature must be demo-able in 30 seconds of the pitch
+            1. **CORE PROBLEM & SOLUTION DEFINITION:**
+                - Identify the ONE specific problem this MVP solves better than existing solutions
+                - Define the unique value proposition that leverages {team_strength} expertise
+                - Ensure the solution is demonstrable within {hackathon_duration} hours
+                - Connect directly to hackathon theme and judges' evaluation criteria
             
-            2. **API-FIRST ARCHITECTURE** (Especially for Frontend/Full-Stack):
-                - Specify exact APIs to replace custom development
-                - Include backup APIs in case primary fails
-                - Estimate costs for demo day (must be under $20)
-                - {arch_template['tech_constraints']}
+            2. **FEATURE PRIORITIZATION & SCOPE MANAGEMENT:**
+                - Define exactly THREE tiers of features:
+                  * MUST-HAVE (Core Demo): Buildable in {hackathon_duration * 0.4} hours
+                  * SHOULD-HAVE (Polish): Additional {hackathon_duration * 0.2} hours if time permits
+                  * COULD-HAVE (Future): Post-hackathon expansion features
+                - Each feature must showcase {team_strength} capabilities visibly
+                - Ensure MUST-HAVE features alone create a winning demo
             
-            3. **TECH STACK SPECIFICATION** (Battle-tested only):
-                - Choose technologies with <{hackathon_duration * 0.05} hour setup time
-                - Every choice must have extensive documentation/tutorials
-                - Include specific version numbers and compatibility notes
-                - Prioritize technologies team already knows
+            3. **TECHNICAL ARCHITECTURE DEEP-DIVE:**
+                - Specify exact technology choices from: {tech_stack}
+                - Include version numbers, setup commands, and configuration details
+                - Design system architecture that plays to {team_strength} strengths
+                - Plan data flow, API endpoints, and component structure
+                - Ensure all choices support rapid development and reliable demos
             
-            4. **DEMO-OPTIMIZED FEATURE DESIGN**:
-                - Design features that work well in 3-minute live demos
-                - Plan for "wow moments" that showcase {team_strength} skills
-                - Include fallback demos if main feature fails
-                - Ensure features work without perfect internet connectivity
+            4. **INNOVATION & DIFFERENTIATION STRATEGY:**
+                - Identify the specific innovation that makes this unique
+                - Focus on innovations within {arch_template['innovation_areas']}
+                - Plan for {arch_template['wow_opportunities']} that showcase team expertise
+                - Ensure differentiation is immediately visible to judges
+                - Design competitive moats that leverage team's core competencies
             
-            5. **DIFFERENTIATION THROUGH {team_strength} EXCELLENCE**:
-                - Identify the ONE thing competitors can't do as well
-                - Ensure differentiation is immediately visible/demonstrable
-                - Make sure advantage comes from team skills, not just technology
-                - Create sustainable competitive advantage in the demo
+            5. **IMPLEMENTATION ROADMAP:**
+                - Break down development into hourly milestones
+                - Prioritize {team_strength} showcase features early in timeline
+                - Include integration points, testing phases, and demo preparation
+                - Plan parallel development streams where possible
+                - Account for deployment, bug fixes, and polish time
             
-            **OUTPUT FORMAT:**
+            6. **RISK MITIGATION & BACKUP PLANS:**
+                - Address every risk identified in critical analysis
+                - Provide fallback solutions for each major component
+                - Ensure minimum viable demo works even if advanced features fail
+                - Plan offline demo capabilities for internet/API failures
+            
+            7. **DEMO OPTIMIZATION & JUDGE APPEAL:**
+                - Design features specifically for 3-minute live demonstrations
+                - Plan "wow moments" that highlight {team_strength} expertise
+                - Ensure demo showcases innovation, technical competence, and market value
+                - Include interactive elements that engage judges directly
+            
+            **COMPREHENSIVE OUTPUT FORMAT:**
             ```
-            **🎯 THE ONE CORE FEATURE:**
-            Feature Name: [Compelling 3-4 word name]
-            What it does: [One sentence description]
-            Why {team_strength} teams excel: [Specific skill alignment]
-            Demo script (30 seconds): [Exact user actions → system responses]
+            **🎯 PROBLEM & SOLUTION FRAMEWORK:**
+            Core Problem Solved: [Specific, measurable problem statement]
+            Unique Value Proposition: [What competitors can't offer]
+            {team_strength} Advantage: [How team skills create competitive edge]
+            Target User Persona: [Specific user type who needs this most]
+            Success Metrics: [How to measure MVP success]
             
-            **✂️ WHAT'S EXPLICITLY CUT:**
-            Excluded Features: [List of features that would cause scope creep]
-            Simplified Elements: [Complex features reduced to basics]
-            Future Phase: [What gets built after hackathon IF this wins]
+            **✨ INNOVATION & WOW FACTOR:**
+            Primary Innovation: [The ONE thing that makes this special]
+            Technical Innovation: [Specific {team_strength} technical achievement]
+            User Experience Innovation: [How users benefit uniquely]
+            Market Innovation: [Why this approach beats existing solutions]
+            Judge Appeal Factor: [What will make judges remember this]
             
-            **🛠️ EXACT TECH ARCHITECTURE:**
-            Primary Stack: [Specific technologies with version numbers]
-            APIs Used: [Exact services with free tier limits]
-            Setup Sequence: [Step-by-step with time estimates]
-            Fallback Options: [What to use if primary tech fails]
-            Total Setup Time: [Must be under 90 minutes]
+            **🏗️ COMPREHENSIVE FEATURE ARCHITECTURE:**
             
-            **🚀 DEMO STRATEGY:**
-            Wow Moment: [The 10-second clip that wins judges]
-            User Journey: [Step-by-step demo flow]
-            {team_strength} Showcase: [How demo highlights team strengths]
-            Backup Demo: [Simplified version if main feature fails]
+            TIER 1 - MUST HAVE (Core Demo - {hackathon_duration * 0.4} hours):
+            Feature 1: [Name] - [Exact functionality] - [Why it showcases {team_strength}] - [Time: X hours]
+            Feature 2: [Name] - [Exact functionality] - [Demo impact] - [Time: X hours]
+            Feature 3: [Name] - [Exact functionality] - [Competitive advantage] - [Time: X hours]
             
-            **💡 DIFFERENTIATION STATEMENT:**
-            One-liner: "Unlike [competitor], our solution [unique value] because [team strength advantage]"
-            Competitive Moat: [Why others can't easily copy this]
-            Judge Appeal: [Why this wins over other hackathon projects]
+            TIER 2 - SHOULD HAVE (Polish - {hackathon_duration * 0.2} hours):
+            Enhancement 1: [Feature improvement that adds wow factor]
+            Enhancement 2: [User experience polish that impresses judges]
+            
+            TIER 3 - COULD HAVE (Future Expansion):
+            Future 1: [Post-hackathon feature for commercial viability]
+            Future 2: [Scalability feature for real-world deployment]
+            
+            **🛠️ DETAILED TECHNICAL IMPLEMENTATION:**
+            
+            Primary Tech Stack:
+            Framework: {tech_stack['primary_framework']}
+            Database: {tech_stack['database']}
+            Key Libraries: {tech_stack['key_libraries']}
+            Deployment: {tech_stack['deployment']}
+            Setup Time: {tech_stack['setup_time']}
+            
+            System Architecture:
+            Frontend Components: [List of UI components needed]
+            Backend APIs: [Specific endpoints and their purposes]
+            Data Models: [Database schema or data structures]
+            External Integrations: [Third-party APIs and their roles]
+            
+            File Structure: [Organized project layout]
+            Development Environment: [Setup requirements and commands]
+            
+            **📋 HOURLY IMPLEMENTATION ROADMAP:**
+            Hour 1-2: [Project setup + core architecture]
+            Hour 3-5: [Core Feature 1 development - {team_strength} focus]
+            Hour 6-8: [Core Feature 2 + basic integration]
+            Hour 9-11: [Core Feature 3 + system integration]
+            Hour 12-14: [Testing, bug fixes, deployment setup]
+            Hour 15-17: [Polish, demo preparation, backup plans]
+            Hour 18+: [Final testing, demo rehearsal, presentation prep]
+            
+            **🚀 DEMO STRATEGY & JUDGE ENGAGEMENT:**
+            Opening Hook: [Specific demo opening that showcases {team_strength}]
+            Core Demo Flow: [Step-by-step user journey highlighting innovation]
+            Wow Moment: [The 15-second sequence that wins judges over]
+            Technical Showcase: [How to display {team_strength} competence]
+            Interaction Elements: [Ways judges can engage with the demo]
+            Closing Impact: [Memorable ending that reinforces value]
+            
+            **🔧 COMPREHENSIVE BACKUP PLANS:**
+            Technical Backup: {tech_stack['backup_stack']}
+            Feature Fallbacks: [Simplified versions of each core feature]
+            Demo Alternatives: [What to show if main demo fails]
+            Offline Capabilities: [How demo works without internet]
+            Recovery Scripts: [Quick fixes for common failures]
+            
+            **💰 COMMERCIAL VIABILITY & MARKET FIT:**
+            Revenue Model: [How this makes money post-hackathon]
+            Market Size: [Target addressable market]
+            Go-to-Market Strategy: [How to reach first users]
+            Competitive Positioning: [Market differentiation strategy]
+            Scalability Plan: [How to grow beyond MVP]
+            
+            **🏆 WINNING FACTORS SUMMARY:**
+            Technical Excellence: [How {team_strength} creates superior solution]
+            Innovation Impact: [Why this advances the field]
+            User Value: [Immediate benefit users will experience]
+            Market Opportunity: [Commercial potential beyond hackathon]
+            Team Advantage: [Why this team can execute this vision]
             ```
             
-            **CRITICAL SUCCESS CRITERIA:**
-            - Buildable by {team_strength} team in {hackathon_duration * 0.8} hours maximum, including setup
-            - Demonstrates clear competitive advantage
-            - Works reliably during live 3-minute demo
-            - Showcases team's core strengths visibly
-            - Has obvious commercial/practical value beyond hackathon
+            **CRITICAL ARCHITECTURE PRINCIPLES:**
+            1. Every decision prioritizes {team_strength} expertise showcase
+            2. All features must be demo-ready and judge-impressing
+            3. Innovation is specific and measurable, not generic
+            4. Technical choices optimize for rapid development + reliability
+            5. Backup plans exist for every critical component
+            6. Commercial viability is clear and compelling
+            7. The MVP creates genuine competitive advantage through team skills
+            
+            **VALIDATION CRITERIA:**
+            - Can this be built by a {team_strength} team in {hackathon_duration * 0.75} hours?
+            - Does this showcase what the team does better than anyone else?
+            - Will judges immediately understand the innovation and value?
+            - Is this differentiated enough to win against other hackathon projects?
+            - Does this solve a real problem people will pay for?
             """,
-            expected_output=f"Complete, executable MVP strategy optimized for {team_strength} team success with detailed technical architecture and demo plan for a {hackathon_duration}-hour hackathon",
+            expected_output=f"Complete MVP strategy blueprint with detailed technical architecture, implementation roadmap, and winning demo plan optimized for {team_strength} team excellence within {hackathon_duration} hours",
             agent=agent,
         )
 
@@ -491,9 +632,16 @@ class TaskValidator:
         
         return validation_results
     
+    
     @staticmethod
     def get_task_quality_score(validation_results: Dict[str, bool]) -> float:
-        """Calculate quality score for task output"""
+        print(f"DEBUG: Data being passed to get_task_quality_score: {validation_results}")
+        print(f"DEBUG: Data type: {type(validation_results)}")
+        
+        # Fix: Handle empty dictionary case
+        if not validation_results or len(validation_results) == 0:
+            return 0.0
+            
         return sum(validation_results.values()) / len(validation_results)
 
 # Usage example with validation

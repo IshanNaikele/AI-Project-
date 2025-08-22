@@ -154,7 +154,7 @@ if st.button("🎯 Generate Personalized Strategy", type="primary"):
         status_text.text("🚀 Sending request to AI Strategist...")
         
         # Send request to FastAPI backend
-        response = requests.post(FASTAPI_URL, json=payload, timeout=300)
+        response = requests.post(FASTAPI_URL, json=payload, timeout=600)
         
         if response.status_code == 200:
             data = response.json()
