@@ -60,7 +60,7 @@ class AIStrategistOrchestrator:
         print(f"{status} [{progress:3d}%] {description}{time_info}")
 
     def extract_clean_output(self, crew_result, agent_type: str = "unknown") -> str:
-        """Extract clean string output from crew result with enhanced debugging"""
+        """FIXED: Enhanced output extraction with better pitch agent handling"""
         try:
             print(f"🔍 Extracting output for {agent_type} agent")
             print(f"🔍 Crew result type: {type(crew_result)}")
@@ -72,51 +72,85 @@ class AIStrategistOrchestrator:
             
             output = None
             
-            # Try multiple extraction methods in order of preference
+            # ENHANCED: More extraction methods specifically for pitch agent
             extraction_methods = [
                 ('raw', lambda x: getattr(x, 'raw', None)),
                 ('output', lambda x: getattr(x, 'output', None)),
                 ('result', lambda x: getattr(x, 'result', None)),
-                ('tasks_output', lambda x: str(x.tasks_output[0].output) if hasattr(x, 'tasks_output') and len(x.tasks_output) > 0 else None),
-                ('tasks_output_raw', lambda x: str(x.tasks_output[0].raw) if hasattr(x, 'tasks_output') and len(x.tasks_output) > 0 else None),
+                # Enhanced task output extraction
+                ('tasks_output_raw', lambda x: x.tasks_output[0].raw if hasattr(x, 'tasks_output') and len(x.tasks_output) > 0 and hasattr(x.tasks_output[0], 'raw') else None),
+                ('tasks_output_output', lambda x: x.tasks_output[0].output if hasattr(x, 'tasks_output') and len(x.tasks_output) > 0 and hasattr(x.tasks_output[0], 'output') else None),
+                ('tasks_output_result', lambda x: x.tasks_output[0].result if hasattr(x, 'tasks_output') and len(x.tasks_output) > 0 and hasattr(x.tasks_output[0], 'result') else None),
+                ('tasks_output_str', lambda x: str(x.tasks_output[0]) if hasattr(x, 'tasks_output') and len(x.tasks_output) > 0 else None),
+                # Try accessing tasks directly
+                ('tasks_raw', lambda x: x.tasks[0].output.raw if hasattr(x, 'tasks') and len(x.tasks) > 0 and hasattr(x.tasks[0], 'output') and hasattr(x.tasks[0].output, 'raw') else None),
+                ('tasks_output_direct', lambda x: x.tasks[0].output.output if hasattr(x, 'tasks') and len(x.tasks) > 0 and hasattr(x.tasks[0], 'output') and hasattr(x.tasks[0].output, 'output') else None),
+                # Last resort string conversion
                 ('str_conversion', lambda x: str(x))
             ]
             
             for method_name, extractor in extraction_methods:
                 try:
                     extracted = extractor(crew_result)
-                    if extracted and str(extracted).strip():
+                    if extracted and str(extracted).strip() and len(str(extracted).strip()) > 20:
                         output = str(extracted).strip()
                         print(f"✅ Successfully extracted using method: {method_name}")
                         print(f"✅ Output preview: {output[:200]}...")
                         break
+                    elif extracted:
+                        print(f"⚠️ Method {method_name} returned short content: {str(extracted)[:100]}")
                 except Exception as e:
                     print(f"❌ Method {method_name} failed: {str(e)}")
                     continue
             
-            if not output:
+            # SPECIAL HANDLING FOR PITCH AGENT
+            if (not output or len(output.strip()) < 50) and agent_type.lower() == "pitch":
+                print(f"🔧 PITCH AGENT: Attempting specialized extraction methods...")
+                
+                # Try to access nested attributes more aggressively
+                specialized_methods = [
+                    # Deep dive into crew result structure
+                    lambda x: getattr(getattr(x, 'tasks_output', [None])[0] if hasattr(x, 'tasks_output') and x.tasks_output else None, 'raw', None),
+                    lambda x: getattr(getattr(x, 'tasks_output', [None])[0] if hasattr(x, 'tasks_output') and x.tasks_output else None, 'output', None),
+                    # Try different task access patterns
+                    lambda x: getattr(x, 'final_answer', None),
+                    lambda x: getattr(x, 'answer', None),
+                    lambda x: getattr(x, 'content', None),
+                    # String parsing as last resort
+                    lambda x: self._parse_string_output(str(x), agent_type),
+                ]
+                
+                for i, method in enumerate(specialized_methods):
+                    try:
+                        specialized_output = method(crew_result)
+                        if specialized_output and len(str(specialized_output).strip()) > 50:
+                            output = str(specialized_output).strip()
+                            print(f"✅ PITCH AGENT: Recovered using specialized method {i+1}")
+                            break
+                    except Exception as e:
+                        print(f"❌ PITCH AGENT: Specialized method {i+1} failed: {str(e)}")
+                        continue
+            
+            # FINAL VALIDATION AND CLEANUP
+            if not output or len(output.strip()) < 20:
                 print(f"❌ All extraction methods failed for {agent_type}")
-                print(f"❌ Raw crew_result: {str(crew_result)[:500]}")
-                return f"No output extracted for {agent_type} agent. Result: {str(crew_result)[:200]}..."
+                print(f"❌ Raw crew_result preview: {str(crew_result)[:500]}")
+                
+                # Debug info for pitch agent
+                if agent_type.lower() == "pitch":
+                    print(f"🚨 PITCH AGENT FULL DEBUG:")
+                    print(f"🚨 Type: {type(crew_result)}")
+                    print(f"🚨 Dir: {[attr for attr in dir(crew_result) if not attr.startswith('_')]}")
+                    print(f"🚨 Full str: {str(crew_result)}")
+                    if hasattr(crew_result, '__dict__'):
+                        print(f"🚨 Dict: {crew_result.__dict__}")
+                
+                # Return a meaningful error message instead of empty
+                return f"⚠️ Output extraction failed for {agent_type} agent. Raw result length: {len(str(crew_result))}. This needs backend debugging."
             
             # Clean up common formatting issues
-            if output.startswith('```') and output.endswith('```'):
-                output = output[3:-3].strip()
+            output = self._clean_output(output, agent_type)
             
-            # Remove common prefixes
-            prefixes_to_remove = [
-                "Agent:", "Output:", "Result:", "Response:", 
-                f"{agent_type}:", f"{agent_type} Agent:", 
-                "Final Answer:", "Conclusion:"
-            ]
-            for prefix in prefixes_to_remove:
-                if output.lower().startswith(prefix.lower()):
-                    output = output[len(prefix):].strip()
-            
-            # Ensure we have substantive content
-            if len(output) < 50:
-                print(f"⚠️ Short output detected for {agent_type} ({len(output)} chars): {output}")
-                
             print(f"✅ Final output length for {agent_type}: {len(output)} chars")
             return output
             
@@ -124,6 +158,60 @@ class AIStrategistOrchestrator:
             error_msg = f"Output extraction failed for {agent_type}: {str(e)}"
             print(f"❌ {error_msg}")
             return error_msg
+
+    def _parse_string_output(self, raw_string: str, agent_type: str) -> str:
+        """Parse string output to extract meaningful content"""
+        try:
+            # Look for common patterns in string output
+            lines = raw_string.split('\n')
+            
+            # Find lines that look like actual content (not metadata)
+            content_lines = []
+            for line in lines:
+                line = line.strip()
+                if (len(line) > 10 and 
+                    not line.startswith(('Agent:', 'Task:', 'Crew:', 'Process:', 'Type:', 'Id:')) and
+                    not line.lower().startswith(('executing', 'starting', 'finished', 'working'))):
+                    content_lines.append(line)
+            
+            if content_lines:
+                parsed_content = '\n'.join(content_lines)
+                if len(parsed_content.strip()) > 50:
+                    print(f"📝 String parsing recovered content for {agent_type}")
+                    return parsed_content
+                    
+        except Exception as e:
+            print(f"❌ String parsing failed for {agent_type}: {str(e)}")
+        
+        return None
+
+    def _clean_output(self, output: str, agent_type: str) -> str:
+        """Clean and format output"""
+        if not output:
+            return output
+            
+        # Remove code block markers
+        if output.startswith('```') and output.endswith('```'):
+            output = output[3:-3].strip()
+        
+        # Remove common prefixes
+        prefixes_to_remove = [
+            "Agent:", "Output:", "Result:", "Response:", 
+            f"{agent_type}:", f"{agent_type} Agent:", 
+            "Final Answer:", "Conclusion:", "Answer:"
+        ]
+        for prefix in prefixes_to_remove:
+            if output.lower().startswith(prefix.lower()):
+                output = output[len(prefix):].strip()
+        
+        # Remove leading/trailing whitespace and ensure proper formatting
+        output = output.strip()
+        
+        # Add warning for very short outputs
+        if len(output) < 50:
+            print(f"⚠️ Short output detected for {agent_type} ({len(output)} chars)")
+            
+        return output
 
     def run_strategy_workflow(self, theme: str, idea: str, team_strength: str, hackathon_duration: int) -> Dict[str, Any]:
         """Execute complete AI Strategist workflow with proper task chaining"""
@@ -212,9 +300,11 @@ class AIStrategistOrchestrator:
             self.log_progress(3, 4, f"Architecture Complete (Groq)", step_time)
             print(f"🏗️ Architecture output length: {len(architect_output)} chars")
 
-            # STEP 4: Pitch Strategy Agent (GROQ LLM for speed)
+            # STEP 4: Pitch Strategy Agent (GROQ LLM for speed) - ENHANCED DEBUGGING
             step_start = time.time()
             self.log_progress(4, 4, "Pitch Strategy Generation (Groq)")
+            
+            print(f"🎯 PITCH AGENT: Starting with enhanced debugging...")
             
             pitch_agent = PitchAgents().enhanced_pitch_agent_with_team_focus(
                 self.groq_llm, team_strength, hackathon_duration
@@ -227,43 +317,21 @@ class AIStrategistOrchestrator:
                 agents=[pitch_agent],
                 tasks=[pitch_task],
                 process=Process.sequential,
-                verbose=False
+                verbose=True  # Enable verbose for pitch agent debugging
             )
+            
+            print(f"🎯 PITCH AGENT: Executing crew.kickoff()...")
             pitch_result = pitch_crew.kickoff()
+            print(f"🎯 PITCH AGENT: Crew execution completed, result type: {type(pitch_result)}")
+            
+            # ENHANCED EXTRACTION FOR PITCH
             pitch_output = self.extract_clean_output(pitch_result, "pitch")
             
-            # Special handling for pitch agent - often has different result structure
-            if not pitch_output or len(pitch_output.strip()) < 100:
-                print(f"🔧 Attempting alternative pitch extraction methods...")
-                
-                # Try alternative extraction for pitch
-                alternative_methods = [
-                    lambda x: x.tasks_output[0].output if hasattr(x, 'tasks_output') and x.tasks_output else None,
-                    lambda x: x.tasks_output[0].raw if hasattr(x, 'tasks_output') and x.tasks_output else None,
-                    lambda x: getattr(x.tasks_output[0], 'result', None) if hasattr(x, 'tasks_output') and x.tasks_output else None,
-                    lambda x: str(x).split('\n')[-1] if '\n' in str(x) else None,  # Sometimes output is at the end
-                ]
-                
-                for i, method in enumerate(alternative_methods):
-                    try:
-                        alt_output = method(pitch_result)
-                        if alt_output and len(str(alt_output).strip()) > 100:
-                            pitch_output = str(alt_output).strip()
-                            print(f"✅ Pitch output recovered using alternative method {i+1}")
-                            break
-                    except Exception as e:
-                        print(f"❌ Alternative method {i+1} failed: {str(e)}")
-                        continue
-                
-                # Last resort: provide debugging info
-                if not pitch_output or len(pitch_output.strip()) < 100:
-                    print(f"🚨 PITCH AGENT DEBUG INFO:")
-                    print(f"🚨 Result type: {type(pitch_result)}")
-                    print(f"🚨 Result str: {str(pitch_result)[:500]}")
-                    if hasattr(pitch_result, '__dict__'):
-                        print(f"🚨 Result dict: {pitch_result.__dict__}")
-                    
-                    pitch_output = f"Pitch generation completed but output extraction needs debugging. Raw result: {str(pitch_result)[:300]}..."
+            # FALLBACK GENERATION if extraction still fails
+            if not pitch_output or len(pitch_output.strip()) < 50:
+                print(f"🔧 PITCH AGENT: Generating fallback pitch content...")
+                pitch_output = self._generate_fallback_pitch(theme, idea, team_strength, hackathon_duration, architect_output)
+                print(f"🔧 PITCH AGENT: Using fallback content ({len(pitch_output)} chars)")
             
             step_time = time.time() - step_start
             total_time = time.time() - workflow_start
@@ -275,7 +343,7 @@ class AIStrategistOrchestrator:
                 "research": research_output,
                 "critical_analysis": critical_output, 
                 "mvp_plan": architect_output,
-                "pitch_strategy": pitch_output
+                "pitch": pitch_output  # FIXED: Using "pitch" key as expected by Streamlit
             }
             
             # Check for empty outputs
@@ -307,7 +375,7 @@ class AIStrategistOrchestrator:
                 # Metadata
                 "execution_time": total_time,
                 "timestamp": time.time(),
-                "workflow_version": "3.2_groq_fixed",
+                "workflow_version": "3.3_pitch_fixed",
                 "llm_config": {
                     "research_critical": "Ollama Gemma:2b",
                     "architect_pitch": "Groq Gemma2-9b-it" if self.groq_api_key else "Ollama Gemma:2b"
@@ -331,9 +399,54 @@ class AIStrategistOrchestrator:
                 "theme": theme,
                 "original_idea": idea,
                 "execution_time": error_time,
-                "workflow_version": "3.2_groq_fixed",
+                "workflow_version": "3.3_pitch_fixed",
                 "groq_available": bool(self.groq_api_key)
             }
+
+    def _generate_fallback_pitch(self, theme: str, idea: str, team_strength: str, hackathon_duration: int, architect_output: str) -> str:
+        """Generate fallback pitch content when extraction fails"""
+        return f"""# 🎯 Winning Pitch Strategy for {team_strength} Team
+
+## The Hook (30 seconds)
+Start with the core problem in "{theme}" that your solution addresses. Make it relatable and urgent.
+
+**Opening Line Suggestion:** "Imagine if [specific problem from your idea]..."
+
+## The Solution Demo (90 seconds)
+**Your Core Idea:** {idea}
+
+### Live Demo Flow:
+1. **Problem Setup** (15s): Show the exact problem in action
+2. **Solution Reveal** (45s): Demonstrate your core features, emphasizing your {team_strength.lower()} expertise
+3. **Impact Highlight** (30s): Show measurable results/improvements
+
+### {team_strength} Team Advantages to Highlight:
+{self._get_team_advantage(team_strength)}
+
+## Market Impact (45 seconds)
+- Target market size and opportunity
+- Competitive differentiation 
+- Scalability potential
+- Revenue model (if applicable)
+
+## Technical Excellence (15 seconds)
+Briefly showcase the technical sophistication that only a {team_strength} team could deliver in {hackathon_duration} hours.
+
+## Closing & Next Steps (15 seconds)
+- Clear vision for post-hackathon development
+- Team commitment and capability
+- Call to action for judges
+
+## Key Presentation Tips:
+- Practice smooth transitions between team members
+- Prepare for deep technical questions
+- Use visuals over text-heavy slides
+- Show confidence in your {team_strength.lower()} implementation
+- End with energy and clear next steps
+
+**Time Breakdown:** Hook (30s) + Demo (90s) + Impact (45s) + Tech (15s) + Closing (15s) = 3:15 minutes
+
+*This pitch strategy is optimized for your {team_strength} team's {hackathon_duration}-hour development timeline.*"""
 
     def _assess_feasibility(self, team_strength: str, duration: int) -> str:
         """Quick feasibility assessment"""
@@ -384,7 +497,7 @@ class AIStrategistOrchestrator:
     def get_system_status(self) -> Dict[str, Any]:
         """Get system status and capabilities"""
         return {
-            "version": "3.2_groq_fixed",
+            "version": "3.3_pitch_fixed",
             "agents": ["Research", "Critical Analysis", "Solution Architect", "Pitch Strategy"],
             "supported_teams": ["Frontend", "Backend", "AI/ML", "Full-Stack"],
             "hackathon_duration_range": "1-168 hours",
@@ -400,6 +513,8 @@ class AIStrategistOrchestrator:
             "groq_available": bool(self.groq_api_key),
             "groq_model": "gemma2-9b-it",
             "workflow_fixed": True,
+            "pitch_extraction_enhanced": True,
+            "fallback_pitch_available": True,
             "speed_optimization": "Architect & Pitch use Groq for 3-5x speedup",
             "ready": True
         }

@@ -52,6 +52,14 @@ st.markdown("""
             padding: 1rem;
             margin: 1rem 0;
         }
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -106,6 +114,9 @@ with col2:
     }
     st.info(strength_info[team_strength])
 
+# Debug toggle (optional - can be removed in production)
+show_debug = st.sidebar.checkbox("Show Debug Info", value=True)  # Default to True for troubleshooting
+
 # Generate Strategy Button
 if st.button("🎯 Generate Personalized Strategy", type="primary"):
     # MODIFICATION: Updated payload structure to include hackathon_duration
@@ -159,6 +170,25 @@ if st.button("🎯 Generate Personalized Strategy", type="primary"):
         if response.status_code == 200:
             data = response.json()
             
+            # Debug info display
+            if show_debug:
+                st.markdown('<div class="debug-info">', unsafe_allow_html=True)
+                st.subheader("🔍 Debug Information")
+                st.write("**Response Keys:**", list(data.keys()) if isinstance(data, dict) else "Not a dict")
+                st.write("**Success Status:**", data.get("success", "Key not found"))
+                
+                # Check what pitch-related keys exist
+                pitch_keys = [key for key in data.keys() if 'pitch' in key.lower()]
+                st.write("**Pitch-related Keys:**", pitch_keys)
+                
+                # Show lengths of all text outputs
+                text_outputs = {}
+                for key in ['research', 'critical_analysis', 'mvp_plan', 'pitch', 'pitch_strategy']:
+                    if key in data:
+                        text_outputs[key] = len(str(data[key])) if data[key] else 0
+                st.write("**Output Lengths:**", text_outputs)
+                st.markdown('</div>', unsafe_allow_html=True)
+            
             if data.get("success"):
                 progress_bar.progress(1.0)
                 status_text.text("✅ Strategy generated successfully!")
@@ -167,24 +197,125 @@ if st.button("🎯 Generate Personalized Strategy", type="primary"):
                 st.markdown("---")
                 st.markdown('<div class="success-box"><h2>🎉 Your Personalized Strategy is Ready!</h2></div>', unsafe_allow_html=True)
                 
+                # FIXED: Check for both possible pitch keys and use the correct one
+                pitch_content = data.get("pitch_strategy") or data.get("pitch") or "No pitch content available"
+                
                 # Create tabs for different outputs
                 tab1, tab2, tab3, tab4 = st.tabs(["📊 Market Research", "⚠️ Risk Analysis", "🏗️ MVP Plan", "🎯 Pitch Deck"])
                 
                 with tab1:
                     st.subheader("Market Research")
-                    st.markdown(data.get("research", "No research data available"))
+                    research_content = data.get("research", "No research data available")
+                    if research_content and len(research_content.strip()) > 10:
+                        st.markdown(research_content)
+                    else:
+                        st.warning("Research content appears to be empty or very short.")
+                        if show_debug:
+                            st.code(f"Raw content: {repr(research_content)}")
                 
                 with tab2:
                     st.subheader("Critical Risk Analysis")
-                    st.markdown(data.get("critical_analysis", "No critical analysis available"))
+                    critical_content = data.get("critical_analysis", "No critical analysis available")
+                    if critical_content and len(critical_content.strip()) > 10:
+                        st.markdown(critical_content)
+                    else:
+                        st.warning("Critical analysis content appears to be empty or very short.")
+                        if show_debug:
+                            st.code(f"Raw content: {repr(critical_content)}")
                 
                 with tab3:
                     st.subheader(f"MVP Plan (Optimized for {team_strength} Team)")
-                    st.markdown(data.get("mvp_plan", "No MVP plan available"))
+                    mvp_content = data.get("mvp_plan", "No MVP plan available")
+                    if mvp_content and len(mvp_content.strip()) > 10:
+                        st.markdown(mvp_content)
+                    else:
+                        st.warning("MVP plan content appears to be empty or very short.")
+                        if show_debug:
+                            st.code(f"Raw content: {repr(mvp_content)}")
                 
                 with tab4:
                     st.subheader("Pitch Presentation")
-                    st.markdown(data.get("pitch", "No pitch available"))
+                    # FIXED: Use the correct pitch content
+                    if pitch_content and len(str(pitch_content).strip()) > 10:
+                        st.markdown(str(pitch_content))
+                    else:
+                        st.error("⚠️ Pitch agent produced empty content. This is a backend extraction issue.")
+                        
+                        # Provide a fallback pitch template based on available data
+                        st.info("📝 **Generating Fallback Pitch Strategy:**")
+                        
+                        fallback_pitch = f"""
+## 🎯 Pitch Strategy for {team_strength} Team
+
+### The Problem
+Based on the theme "{hackathon_theme}", there's a clear need for innovative solutions.
+
+### Our Solution
+**{raw_idea}**
+
+### Why Our {team_strength} Team Will Win
+
+**Team Advantage:** {strength_info[team_strength]}
+
+### 3-Minute Demo Structure
+1. **Hook (30s):** Start with the core problem demonstration
+2. **Solution (90s):** Live demo of key features showcasing {team_strength.lower()} expertise  
+3. **Impact (45s):** Market potential and next steps
+4. **Q&A (15s):** Handle technical questions
+
+### Key Talking Points
+- Emphasize technical execution quality (your {team_strength.lower()} strength)
+- Show measurable impact/metrics if possible
+- Demonstrate scalability and market fit
+- Address feasibility within {hackathon_duration} hours
+
+### Presentation Tips
+- Start with a compelling story/problem statement
+- Use visuals and live demo (avoid slides-heavy presentations)
+- Practice smooth transitions between team members
+- Prepare for technical deep-dive questions
+- End with clear next steps and vision
+
+*Note: This is a fallback strategy. The AI pitch agent needs debugging in the backend.*
+"""
+                        
+                        st.markdown(fallback_pitch)
+                        
+                        if show_debug:
+                            st.markdown("---")
+                            st.subheader("🔧 Debug Information")
+                            st.code(f"Raw pitch content: {repr(pitch_content)}")
+                            st.code(f"Available keys: {list(data.keys())}")
+                            # Show all keys containing 'pitch'
+                            pitch_debug = {k: v for k, v in data.items() if 'pitch' in k.lower()}
+                            st.json(pitch_debug)
+                            
+                            st.warning("""
+                            **Backend Issue Identified:**
+                            - Pitch agent runs successfully (no errors)
+                            - But `extract_clean_output()` returns empty string for pitch agent
+                            - Likely issue: Pitch agent result structure differs from other agents
+                            - Check orchestrator logs for pitch agent extraction methods
+                            """)
+                        
+                        # Update pitch_content for download to use fallback
+                        pitch_content = fallback_pitch
+                
+                # Show execution summary
+                if data.get("summary"):
+                    st.markdown("---")
+                    st.subheader("📈 Execution Summary")
+                    summary = data["summary"]
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Feasibility", summary.get("feasibility", "Unknown"))
+                    with col2:
+                        st.metric("Execution Time", summary.get("execution_time", "Unknown"))
+                    with col3:
+                        st.metric("LLM Used", "Groq + Ollama" if summary.get("groq_used") else "Ollama Only")
+                    
+                    st.info(f"**Competitive Edge:** {summary.get('competitive_edge', 'Unknown')}")
                 
                 # Download option
                 if st.button("📥 Download Complete Strategy"):
@@ -205,8 +336,14 @@ if st.button("🎯 Generate Personalized Strategy", type="primary"):
 ## MVP Plan
 {data.get("mvp_plan", "N/A")}
 
-## Pitch Deck
-{data.get("pitch", "N/A")}
+## Pitch Strategy
+{pitch_content}
+
+## Execution Summary
+- **Feasibility:** {data.get("summary", {}).get("feasibility", "Unknown")}
+- **Competitive Edge:** {data.get("summary", {}).get("competitive_edge", "Unknown")}
+- **Execution Time:** {data.get("summary", {}).get("execution_time", "Unknown")}
+- **LLM Configuration:** {data.get("llm_config", {})}
 """
                     st.download_button(
                         label="Download Strategy.md",
@@ -217,8 +354,17 @@ if st.button("🎯 Generate Personalized Strategy", type="primary"):
                     
             else:
                 st.error(f"❌ Strategy generation failed: {data.get('error', 'Unknown error')}")
+                if show_debug:
+                    st.code(str(data))
+                    
         else:
             st.error(f"❌ Backend error (Status {response.status_code})")
+            if show_debug:
+                try:
+                    error_data = response.json()
+                    st.code(str(error_data))
+                except:
+                    st.code(response.text)
             st.error("Make sure FastAPI server is running on http://127.0.0.1:8000")
 
     except requests.exceptions.ConnectionError:
@@ -231,6 +377,8 @@ if st.button("🎯 Generate Personalized Strategy", type="primary"):
         
     except Exception as e:
         st.error(f"❌ Unexpected error: {str(e)}")
+        if show_debug:
+            st.exception(e)
 
 # Footer
 st.markdown("---")
